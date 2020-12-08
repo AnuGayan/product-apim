@@ -346,5 +346,15 @@
       "depends": "soapservice,restservice,wsdl",
       "usedby": "soapservice,restservice,wsdl,endpoint"
     }
+  ],
+  "tomcat.header_security_filters" : [
+    {
+      "name": "hstsEnabled",
+      "value": false
+    },
+    {
+      "name": "antiClickJackingEnabled",
+      "value": false
+    }
   ]
 }
