@@ -75,6 +75,11 @@
         <filter-class>org.owasp.csrfguard.CsrfGuardFilter</filter-class>
     </filter>
 
+    <filter>
+    <filter-name>URLBasedCachePreventionFilter</filter-name>
+    <filter-class>org.wso2.carbon.ui.filters.cache.URLBasedCachePreventionFilter</filter-class>
+    </filter>
+
     <!-- Tomcat http header security filter -->
     <filter>
         <filter-name>HttpHeaderSecurityFilter</filter-name>
@@ -108,6 +113,11 @@
  <filter-name>HttpHeaderSecurityFilter</filter-name>
  <url-pattern>*</url-pattern>
  </filter-mapping>
+
+    <filter-mapping>
+        <filter-name>URLBasedCachePreventionFilter</filter-name>
+        <url-pattern>*.jsp</url-pattern>
+    </filter-mapping>
 
  <filter-mapping>
  <filter-name>CharsetFilter</filter-name>
