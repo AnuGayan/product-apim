@@ -67,6 +67,26 @@
         <targetPath>{{config_data.path}}</targetPath>
     </mount>
 
+    {% for handler in registry_handler %}
+    <handler class="{{handler.class}}" {% if handler.method is defined %} method="{{handler.method}}" {% endif %}>
+        {% for propKey,propValue in handler.properties.items() %}
+        <property name="{{propKey}}">{{propValue}}</property>
+        {% endfor %}
+        {% if handler.nested_property.enable %}
+        <property name="{{handler.nested_property.name}}" type="{{handler.nested_property.type}}">
+            {% for prop in nested_properties[handler.nested_property.name] %}
+                <{{prop.tag}} {% if prop.key is defined %} key="{{prop.key}}" {% endif %}>{{prop.value}}</{{prop.tag}}>
+            {% endfor %}
+        </property>
+        {% endif %}
+        <filter class="{{handler.filter_class}}">
+            {% for filterPropKey,filterPropValue in handler.filter_properties.items() %}
+            <property name="{{filterPropKey}}">{{filterPropValue}}</property>
+            {% endfor %}
+        </filter>
+    </handler>
+    {% endfor %}
+
     <!-- This handler provides the feature to add a simlink to a given resource -->
 
     <handler class="org.wso2.carbon.registry.extensions.handlers.ExtensionsSymLinkHandler">
