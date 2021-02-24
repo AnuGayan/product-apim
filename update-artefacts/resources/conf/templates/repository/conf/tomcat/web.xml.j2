@@ -466,6 +466,17 @@
         </filter>
     -->
 
+    <filter>
+            <filter-name>HttpHeaderSecurityFilter</filter-name>
+            <filter-class>org.apache.catalina.filters.HttpHeaderSecurityFilter</filter-class>
+            {% for init_param in tomcat.header_security_filters %}
+            <init-param>
+                <param-name>{{init_param.name}}</param-name>
+                <param-value>{{init_param.value}}</param-value>
+            </init-param>
+            {% endfor %}
+        </filter>
+
 
     <!-- ==================== Built In Filter Mappings ====================== -->
 
