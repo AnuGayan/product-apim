@@ -266,6 +266,17 @@
             </EagerLoading>
             {% endif %}
         </LoadingPolicy>
+
+        {% if Tenant.TenantDelete is not defined %}
+        <TenantDelete>false</TenantDelete>
+        {% else %}
+        <TenantDelete>{{Tenant.TenantDelete}}</TenantDelete>
+        {% endif %}
+        {% if Tenant.ListenerInvocationPolicy is defined %}
+        <ListenerInvocationPolicy>
+            <InvokeOnDelete>{{Tenant.ListenerInvocationPolicy.InvokeOnDelete}}</InvokeOnDelete>
+        </ListenerInvocationPolicy>
+        {% endif %}
     </Tenant>
 
     <!--
