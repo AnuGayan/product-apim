@@ -35,7 +35,7 @@
 
         ## IF endpoint secured
         #if($endpointsecurity.enabled)
-        #if($isSecureVaultEnabled)
+        #if($isSecureVaultEnabled && ($endpointsecurity.type == "basic" || $endpointsecurity.type == "BASIC"))
 <property xmlns="http://ws.apache.org/ns/synapse" name="password" expression="wso2:vault-lookup('$endpointsecurity.alias')"/>
 <property xmlns="http://ws.apache.org/ns/synapse" name="unpw" expression="fn:concat('$endpointsecurity.username',':',get-property('password'))"/>
 <property xmlns="http://ws.apache.org/ns/synapse" name="Authorization" expression="fn:concat('Basic ', base64Encode(get-property('unpw')))" scope="transport"/>
