@@ -127,25 +127,32 @@ public class GatewayRestAPITestCase extends APIMIntegrationBaseTest {
         // Verify local entries
         LocalEntryDTO localEntryDTO = restAPIGateway.retrieveLocalEntries(name, version);
         Assert.assertNotNull(localEntryDTO);
-        Assert.assertNotNull(localEntryDTO.getDeployedLocalEntries());
-        Assert.assertNotEquals(localEntryDTO.getDeployedLocalEntries().size(), 0);
+        List<String> localEntries = new ArrayList<>();
+        localEntries.addAll(localEntryDTO.getDeployedLocalEntries());
+        localEntries.addAll(localEntryDTO.getNotdeployedLocalEntries());
+        Assert.assertEquals(localEntries.size(), 2);
+        Assert.assertTrue(localEntries.get(0).contains(apiId) || localEntries.get(1).contains(apiId));
 
         // Verify endpoints
         EndpointsDTO endpointsDTO = restAPIGateway.retrieveEndpoints(name, version);
         Assert.assertNotNull(endpointsDTO);
-        Assert.assertNotNull(endpointsDTO.getDeployedEndpoints());
-        Assert.assertEquals(endpointsDTO.getDeployedEndpoints().size(), 2);
-        Assert.assertTrue(endpointsDTO.getDeployedEndpoints().get(0).contains("production"));
-        Assert.assertTrue(endpointsDTO.getDeployedEndpoints().get(1).contains("sandbox"));
-        Assert.assertTrue(endpointsDTO.getDeployedEndpoints().get(0).contains(url));
-        Assert.assertTrue(endpointsDTO.getDeployedEndpoints().get(1).contains(url));
+        List<String> endpoints = new ArrayList<>();
+        endpoints.addAll(endpointsDTO.getDeployedEndpoints());
+        endpoints.addAll(endpointsDTO.getNotdeployedEndpoints());
+        Assert.assertEquals(endpoints.size(), 2);
+        Assert.assertTrue(endpoints.get(0).contains("production"));
+        Assert.assertTrue(endpoints.get(1).contains("sandbox"));
+        Assert.assertTrue(endpoints.get(0).contains(url));
+        Assert.assertTrue(endpoints.get(1).contains(url));
 
         // Verify sequences
         SequencesDTO sequencesDTO = restAPIGateway.retrieveSequences(name, version);
         Assert.assertNotNull(sequencesDTO);
-        Assert.assertNotNull(sequencesDTO.getDeployedSequences());
-        Assert.assertEquals(sequencesDTO.getDeployedSequences().size(), 3);
-        for (String sequence : sequencesDTO.getDeployedSequences()) {
+        List<String> sequences = new ArrayList<>();
+        sequences.addAll(sequencesDTO.getDeployedSequences());
+        sequences.addAll(sequencesDTO.getNotdeployedSequences());
+        Assert.assertEquals(sequences.size(), 3);
+        for (String sequence : sequences) {
             if (sequence.contains("--In")) {
                 Assert.assertTrue(sequence.contains("IN_MESSAGE"));
             }
