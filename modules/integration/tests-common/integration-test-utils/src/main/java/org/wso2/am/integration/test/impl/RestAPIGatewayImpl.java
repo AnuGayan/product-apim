@@ -18,12 +18,11 @@ package org.wso2.am.integration.test.impl;
 
 import org.wso2.am.integration.clients.gateway.api.ApiClient;
 import org.wso2.am.integration.clients.gateway.api.ApiException;
-import org.wso2.am.integration.clients.gateway.api.auth.HttpBasicAuth;
-import org.wso2.am.integration.clients.gateway.api.v1.DeployApiApi;
+import org.wso2.am.integration.clients.gateway.api.v1.ReDeployApiApi;
 import org.wso2.am.integration.clients.gateway.api.v1.GetApiArtifactsApi;
 import org.wso2.am.integration.clients.gateway.api.v1.UndeployApiApi;
 import org.wso2.am.integration.clients.gateway.api.v1.dto.APIDTO;
-import org.wso2.am.integration.clients.gateway.api.v1.dto.DeployResponseDTO;
+import org.wso2.am.integration.clients.gateway.api.v1.dto.EndpointsDTO;
 import org.wso2.am.integration.clients.gateway.api.v1.dto.LocalEntryDTO;
 import org.wso2.am.integration.clients.gateway.api.v1.dto.SequencesDTO;
 
@@ -33,7 +32,7 @@ import java.nio.charset.StandardCharsets;
 public class RestAPIGatewayImpl {
     private String tenantDomain = null;
     GetApiArtifactsApi getApiArtifactsApi = new GetApiArtifactsApi();
-    DeployApiApi deployApiApi = new DeployApiApi();
+    ReDeployApiApi reDeployApiApi = new ReDeployApiApi();
     UndeployApiApi undeployApiApi = new UndeployApiApi();
 
     public RestAPIGatewayImpl(String username, String password, String tenantDomain) {
@@ -47,7 +46,7 @@ public class RestAPIGatewayImpl {
         apiClient.setConnectTimeout(600000);
         apiClient.setWriteTimeout(600000);
         getApiArtifactsApi.setApiClient(apiClient);
-        deployApiApi.setApiClient(apiClient);
+        reDeployApiApi.setApiClient(apiClient);
         undeployApiApi.setApiClient(apiClient);
         this.tenantDomain = tenantDomain;
     }
@@ -56,7 +55,7 @@ public class RestAPIGatewayImpl {
         return getApiArtifactsApi.apiArtifactGet(name, version, tenantDomain);
     }
 
-    public DeployResponseDTO retrieveEndpoints(String name, String version) throws ApiException {
+    public EndpointsDTO retrieveEndpoints(String name, String version) throws ApiException {
         return getApiArtifactsApi.endPointsGet(name, version, tenantDomain);
     }
 

@@ -18,10 +18,9 @@
 
 package org.wso2.am.integration.tests.restapi;
 
-import org.json.JSONObject;
 import org.testng.Assert;
 import org.testng.annotations.*;
-import org.wso2.am.integration.clients.gateway.api.v1.dto.DeployResponseDTO;
+import org.wso2.am.integration.clients.gateway.api.v1.dto.EndpointsDTO;
 import org.wso2.am.integration.clients.gateway.api.v1.dto.LocalEntryDTO;
 import org.wso2.am.integration.clients.gateway.api.v1.dto.SequencesDTO;
 import org.wso2.am.integration.clients.publisher.api.v1.dto.APIDTO;
@@ -122,27 +121,25 @@ public class GatewayRestAPITestCase extends APIMIntegrationBaseTest {
         org.wso2.am.integration.clients.gateway.api.v1.dto.APIDTO apiDTO =
                 restAPIGateway.retrieveAPI(name, version);
         Assert.assertNotNull(apiDTO);
-        Assert.assertTrue(apiDTO.getApiDefition().contains("GatewayRestAPITestCase"));
-        Assert.assertTrue(apiDTO.getApiDefition().contains(apiId));
+        Assert.assertTrue(apiDTO.getApi().contains("GatewayRestAPITestCase"));
+        Assert.assertTrue(apiDTO.getApi().contains(apiId));
 
         // Verify local entries
         LocalEntryDTO localEntryDTO = restAPIGateway.retrieveLocalEntries(name, version);
         Assert.assertNotNull(localEntryDTO);
         Assert.assertNotNull(localEntryDTO.getDeployedLocalEntries());
-        Assert.assertEquals(localEntryDTO.getDeployedLocalEntries().size(), 1);
-        Assert.assertTrue(localEntryDTO.getDeployedLocalEntries().get(0).contains(apiId));
+        Assert.assertEquals(localEntryDTO.getDeployedLocalEntries().size(), 2);
+        Assert.assertTrue(localEntryDTO.getDeployedLocalEntries().get(1).contains(apiId));
 
         // Verify endpoints
-//        DeployResponseDTO deployResponseDTO = restAPIGateway.retrieveEndpoints(name, version);
-//        Assert.assertNotNull(deployResponseDTO);
-//        Assert.assertNotNull(deployResponseDTO.getJsonPayload());
-//        JSONObject deployResponseJsonObject = new JSONObject(deployResponseDTO.getJsonPayload());
-//        String deployedEndpoints = deployResponseJsonObject.getString("Deployed Endpoints");
-//        Assert.assertEquals(deployResponseDTO.getJsonPayload().size(), 2);
-//        Assert.assertTrue(deployResponseDTO.getEndpoints().get(0).contains("production"));
-//        Assert.assertTrue(deployResponseDTO.getEndpoints().get(1).contains("sandbox"));
-//        Assert.assertTrue(deployResponseDTO.getEndpoints().get(0).contains(url));
-//        Assert.assertTrue(deployResponseDTO.getEndpoints().get(1).contains(url));
+        EndpointsDTO endpointsDTO = restAPIGateway.retrieveEndpoints(name, version);
+        Assert.assertNotNull(endpointsDTO);
+        Assert.assertNotNull(endpointsDTO.getDeployedEndpoints());
+        Assert.assertEquals(endpointsDTO.getDeployedEndpoints().size(), 2);
+        Assert.assertTrue(endpointsDTO.getDeployedEndpoints().get(0).contains("production"));
+        Assert.assertTrue(endpointsDTO.getDeployedEndpoints().get(1).contains("sandbox"));
+        Assert.assertTrue(endpointsDTO.getDeployedEndpoints().get(0).contains(url));
+        Assert.assertTrue(endpointsDTO.getDeployedEndpoints().get(1).contains(url));
 
         // Verify sequences
         SequencesDTO sequencesDTO = restAPIGateway.retrieveSequences(name, version);
