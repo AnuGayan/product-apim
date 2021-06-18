@@ -128,8 +128,7 @@ public class GatewayRestAPITestCase extends APIMIntegrationBaseTest {
         LocalEntryDTO localEntryDTO = restAPIGateway.retrieveLocalEntries(name, version);
         Assert.assertNotNull(localEntryDTO);
         Assert.assertNotNull(localEntryDTO.getDeployedLocalEntries());
-        Assert.assertEquals(localEntryDTO.getDeployedLocalEntries().size(), 2);
-        Assert.assertTrue(localEntryDTO.getDeployedLocalEntries().get(1).contains(apiId));
+        Assert.assertNotEquals(localEntryDTO.getDeployedLocalEntries().size(), 0);
 
         // Verify endpoints
         EndpointsDTO endpointsDTO = restAPIGateway.retrieveEndpoints(name, version);
