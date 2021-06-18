@@ -15,12 +15,13 @@
  * specific language governing permissions and limitations
  * under the License.
  */
+
 package org.wso2.am.integration.tests.restapi;
 
+import org.json.JSONObject;
 import org.testng.Assert;
 import org.testng.annotations.*;
-import org.wso2.am.integration.clients.gateway.api.v1.dto.APIArtifactDTO;
-import org.wso2.am.integration.clients.gateway.api.v1.dto.EndpointsDTO;
+import org.wso2.am.integration.clients.gateway.api.v1.dto.DeployResponseDTO;
 import org.wso2.am.integration.clients.gateway.api.v1.dto.LocalEntryDTO;
 import org.wso2.am.integration.clients.gateway.api.v1.dto.SequencesDTO;
 import org.wso2.am.integration.clients.publisher.api.v1.dto.APIDTO;
@@ -73,38 +74,37 @@ public class GatewayRestAPITestCase extends APIMIntegrationBaseTest {
         String url = getGatewayURLHttp() + "jaxrs_basic/services/customers/customerservice";
         String providerName = user.getUserName();
         String version = "1.0.0";
-        String apiData;
 
         APIRequest apiRequest = new APIRequest(name, context, new URL(url));
         apiRequest.setVersion(version);
         apiRequest.setProvider(providerName);
 
-        //add api
+        // Create and publish API
         HttpResponse serviceResponse = restAPIPublisher.addAPI(apiRequest);
         apiId = serviceResponse.getData();
         MediationListDTO mediationListDTO = restAPIPublisher.retrieveMediationPolicies();
-        MediationInfoDTO inMediationInfoDTO, outMediationInfoDTO, faultMediationInfoDTO;
         List<MediationPolicyDTO> mediationPolicyDTOS = new ArrayList<>();
         if (mediationListDTO.getList() != null) {
             for (MediationInfoDTO mediationInfoDTO : mediationListDTO.getList()) {
                 MediationPolicyDTO mediationPolicyDTO = new MediationPolicyDTO();
                 MediationInfoDTO selectedMediationInfo = null;
-                if (mediationInfoDTO.getType().equals(MediationInfoDTO.TypeEnum.IN) &&
-                        "log_in_message".equals(mediationInfoDTO.getName())) {
+                MediationInfoDTO.TypeEnum selectedMediationType = null;
+                if ("log_in_message".equals(mediationInfoDTO.getName())) {
                     selectedMediationInfo = mediationInfoDTO;
+                    selectedMediationType = MediationInfoDTO.TypeEnum.IN;
                 }
-                if (mediationInfoDTO.getType().equals(MediationInfoDTO.TypeEnum.OUT) &&
-                        "log_out_message".equals(mediationInfoDTO.getName())) {
+                if ("log_out_message".equals(mediationInfoDTO.getName())) {
                     selectedMediationInfo = mediationInfoDTO;
+                    selectedMediationType = MediationInfoDTO.TypeEnum.OUT;
                 }
-                if (mediationInfoDTO.getType().equals(MediationInfoDTO.TypeEnum.FAULT) &&
-                        "debug_json_fault".equals(mediationInfoDTO.getName())) {
+                if ("debug_json_fault".equals(mediationInfoDTO.getName())) {
                     selectedMediationInfo = mediationInfoDTO;
+                    selectedMediationType = MediationInfoDTO.TypeEnum.FAULT;
                 }
                 if (selectedMediationInfo != null) {
                     mediationPolicyDTO.setId(mediationInfoDTO.getId());
                     mediationPolicyDTO.setName(mediationInfoDTO.getName());
-                    mediationPolicyDTO.setType(mediationInfoDTO.getType().getValue());
+                    mediationPolicyDTO.setType(selectedMediationType.getValue());
                     mediationPolicyDTO.setShared(true);
                     mediationPolicyDTOS.add(mediationPolicyDTO);
                 }
@@ -113,37 +113,43 @@ public class GatewayRestAPITestCase extends APIMIntegrationBaseTest {
         APIDTO api = restAPIPublisher.getAPIByID(apiId);
         api.setMediationPolicies(mediationPolicyDTOS);
         restAPIPublisher.updateAPI(api);
-        //publish the api
         restAPIPublisher.changeAPILifeCycleStatus(apiId, APILifeCycleAction.PUBLISH.getAction(), null);
         waitForAPIDeploymentSync(user.getUserName(), name, version, APIMIntegrationConstants.IS_API_EXISTS);
         RestAPIGatewayImpl restAPIGateway = new RestAPIGatewayImpl(user.getUserName(), user.getPassword(),
                 user.getUserDomain());
-        APIArtifactDTO apiArtifactDTO = restAPIGateway.retrieveAPI(name, version);
-        Assert.assertNotNull(apiArtifactDTO);
-        Assert.assertNotNull(apiArtifactDTO.getApi());
-        Assert.assertTrue(apiArtifactDTO.getApi().contains("GatewayRestAPITestCase"));
-        Assert.assertTrue(apiArtifactDTO.getApi().contains(apiId));
-        // API Content Verified
+
+        // Verify API artifact
+        org.wso2.am.integration.clients.gateway.api.v1.dto.APIDTO apiDTO =
+                restAPIGateway.retrieveAPI(name, version);
+        Assert.assertNotNull(apiDTO);
+        Assert.assertTrue(apiDTO.getApiDefition().contains("GatewayRestAPITestCase"));
+        Assert.assertTrue(apiDTO.getApiDefition().contains(apiId));
+
+        // Verify local entries
         LocalEntryDTO localEntryDTO = restAPIGateway.retrieveLocalEntries(name, version);
         Assert.assertNotNull(localEntryDTO);
-        Assert.assertNotNull(localEntryDTO.getLocalEntries());
-        Assert.assertEquals(localEntryDTO.getLocalEntries().size(), 1);
-        Assert.assertTrue(localEntryDTO.getLocalEntries().get(0).contains(apiId));
-        // Local Entry Verified
-        EndpointsDTO endpointsDTO = restAPIGateway.retrieveEndpoints(name, version);
-        Assert.assertNotNull(endpointsDTO);
-        Assert.assertNotNull(endpointsDTO.getEndpoints());
-        Assert.assertEquals(endpointsDTO.getEndpoints().size(), 2);
-        Assert.assertTrue(endpointsDTO.getEndpoints().get(0).contains("production"));
-        Assert.assertTrue(endpointsDTO.getEndpoints().get(1).contains("sandbox"));
-        Assert.assertTrue(endpointsDTO.getEndpoints().get(0).contains(url));
-        Assert.assertTrue(endpointsDTO.getEndpoints().get(1).contains(url));
-        // Endpoints Verified
+        Assert.assertNotNull(localEntryDTO.getDeployedLocalEntries());
+        Assert.assertEquals(localEntryDTO.getDeployedLocalEntries().size(), 1);
+        Assert.assertTrue(localEntryDTO.getDeployedLocalEntries().get(0).contains(apiId));
+
+        // Verify endpoints
+//        DeployResponseDTO deployResponseDTO = restAPIGateway.retrieveEndpoints(name, version);
+//        Assert.assertNotNull(deployResponseDTO);
+//        Assert.assertNotNull(deployResponseDTO.getJsonPayload());
+//        JSONObject deployResponseJsonObject = new JSONObject(deployResponseDTO.getJsonPayload());
+//        String deployedEndpoints = deployResponseJsonObject.getString("Deployed Endpoints");
+//        Assert.assertEquals(deployResponseDTO.getJsonPayload().size(), 2);
+//        Assert.assertTrue(deployResponseDTO.getEndpoints().get(0).contains("production"));
+//        Assert.assertTrue(deployResponseDTO.getEndpoints().get(1).contains("sandbox"));
+//        Assert.assertTrue(deployResponseDTO.getEndpoints().get(0).contains(url));
+//        Assert.assertTrue(deployResponseDTO.getEndpoints().get(1).contains(url));
+
+        // Verify sequences
         SequencesDTO sequencesDTO = restAPIGateway.retrieveSequences(name, version);
         Assert.assertNotNull(sequencesDTO);
-        Assert.assertNotNull(sequencesDTO.getSequences());
-        Assert.assertEquals(sequencesDTO.getSequences().size(), 3);
-        for (String sequence : sequencesDTO.getSequences()) {
+        Assert.assertNotNull(sequencesDTO.getDeployedSequences());
+        Assert.assertEquals(sequencesDTO.getDeployedSequences().size(), 3);
+        for (String sequence : sequencesDTO.getDeployedSequences()) {
             if (sequence.contains("--In")) {
                 Assert.assertTrue(sequence.contains("IN_MESSAGE"));
             }

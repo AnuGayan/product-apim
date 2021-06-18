@@ -22,8 +22,8 @@ import org.wso2.am.integration.clients.gateway.api.auth.HttpBasicAuth;
 import org.wso2.am.integration.clients.gateway.api.v1.DeployApiApi;
 import org.wso2.am.integration.clients.gateway.api.v1.GetApiArtifactsApi;
 import org.wso2.am.integration.clients.gateway.api.v1.UndeployApiApi;
-import org.wso2.am.integration.clients.gateway.api.v1.dto.APIArtifactDTO;
-import org.wso2.am.integration.clients.gateway.api.v1.dto.EndpointsDTO;
+import org.wso2.am.integration.clients.gateway.api.v1.dto.APIDTO;
+import org.wso2.am.integration.clients.gateway.api.v1.dto.DeployResponseDTO;
 import org.wso2.am.integration.clients.gateway.api.v1.dto.LocalEntryDTO;
 import org.wso2.am.integration.clients.gateway.api.v1.dto.SequencesDTO;
 
@@ -52,11 +52,11 @@ public class RestAPIGatewayImpl {
         this.tenantDomain = tenantDomain;
     }
 
-    public APIArtifactDTO retrieveAPI(String name, String version) throws ApiException {
+    public APIDTO retrieveAPI(String name, String version) throws ApiException {
         return getApiArtifactsApi.apiArtifactGet(name, version, tenantDomain);
     }
 
-    public EndpointsDTO retrieveEndpoints(String name, String version) throws ApiException {
+    public DeployResponseDTO retrieveEndpoints(String name, String version) throws ApiException {
         return getApiArtifactsApi.endPointsGet(name, version, tenantDomain);
     }
 
