@@ -80,18 +80,21 @@ public class SearchPaginatedAPIsWithMultipleStatusTestCase extends APIManagerLif
 
         //Wait till APIs get indexed
         int returnApiCount = 0;
+        int returnTotalApiCount = 0;
         for (int i = 0; i < 25; i++) {
             APIListDTO apiListDTO = restAPIStore
                     .searchPaginatedAPIs(PAGINATED_COUNT, 0, MultitenantConstants.SUPER_TENANT_DOMAIN_NAME,
                             API_NAME_PREFIX);
             assertNotNull(apiListDTO, "Unable to retrieve the requested APIs");
             returnApiCount = apiListDTO.getCount();
+            returnTotalApiCount = apiListDTO.getPagination().getTotal();
             if (returnApiCount == PAGINATED_COUNT) {
                 break;
             }
             Thread.sleep(5000);
         }
         Assert.assertEquals(returnApiCount, PAGINATED_COUNT);
+        Assert.assertEquals(returnTotalApiCount, apiCount);
     }
 
     @AfterClass(alwaysRun = true)
