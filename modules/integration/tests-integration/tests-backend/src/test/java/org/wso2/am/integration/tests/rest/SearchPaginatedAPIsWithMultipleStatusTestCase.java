@@ -39,6 +39,7 @@ import static org.testng.Assert.assertNotNull;
 public class SearchPaginatedAPIsWithMultipleStatusTestCase extends APIManagerLifecycleBaseTest {
 
     private final int apiCount = 24;
+    private final int publishedApiCount = 12;
     private static final String PROVIDER = "admin";
     private static final String API_NAME_PREFIX = "YoutubeFeeds";
     private static final String API_CONTEXT_PREFIX = "youtube";
@@ -94,7 +95,7 @@ public class SearchPaginatedAPIsWithMultipleStatusTestCase extends APIManagerLif
             Thread.sleep(5000);
         }
         Assert.assertEquals(returnApiCount, PAGINATED_COUNT);
-        Assert.assertEquals(returnTotalApiCount, apiCount);
+        Assert.assertEquals(returnTotalApiCount, publishedApiCount);
     }
 
     @AfterClass(alwaysRun = true)
