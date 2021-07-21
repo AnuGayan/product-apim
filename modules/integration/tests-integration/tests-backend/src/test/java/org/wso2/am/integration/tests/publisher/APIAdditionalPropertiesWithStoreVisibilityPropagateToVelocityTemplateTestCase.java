@@ -30,6 +30,8 @@ import java.util.Map;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.apache.http.Header;
+import org.apache.http.client.ClientProtocolException;
 import org.apache.http.client.HttpClient;
 import org.apache.http.client.methods.HttpGet;
 import org.apache.http.impl.client.HttpClients;
@@ -165,7 +167,7 @@ public class APIAdditionalPropertiesWithStoreVisibilityPropagateToVelocityTempla
         get.setHeader("Authorization", "Bearer " + accessToken);
 
         org.apache.http.HttpResponse httpResponse = httpclient.execute(get);
-        assertEquals(httpResponse.getFirstHeader("custom-header"), "custom-header: apim-test-header",
+        assertEquals(httpResponse.getFirstHeader("custom-header").getValue(), "apim-test-header",
                 "Custom header is not available");
 
 
@@ -193,7 +195,7 @@ public class APIAdditionalPropertiesWithStoreVisibilityPropagateToVelocityTempla
         get.setHeader("Authorization", "Bearer " + accessToken);
 
         org.apache.http.HttpResponse httpResponse = httpclient.execute(get);
-        assertEquals(httpResponse.getFirstHeader("custom-header"), "custom-header: apim-test-header",
+        assertEquals(httpResponse.getFirstHeader("custom-header").getValue(), "apim-test-header",
                 "Custom header is not available when devportal visibility enabled");
     }
 
