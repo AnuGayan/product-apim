@@ -267,6 +267,8 @@ public class APISecurityTestCase extends APIManagerLifecycleBaseTest {
 
         HttpResponse response5 = restAPIPublisher.addAPI(apiRequest5);
         apiId5 = response5.getData();
+
+        restAPIPublisher.changeAPILifeCycleStatus(apiId4, APILifeCycleAction.PUBLISH.getAction());
     }
 
     @Test(description = "This test case tests the behaviour of APIs that are protected with mutual SSL and OAuth2 "
@@ -672,13 +674,10 @@ public class APISecurityTestCase extends APIManagerLifecycleBaseTest {
 
         // Validate for security disabled API
         HttpResponse response = restAPIPublisher.getAPI(apiId4);
-        APIDTO apidto = new APIDTO();
-        List<APIOperationsDTO> operationsList = new ArrayList<>();
-        List<Object> authTypes = new ArrayList<>();
         String retrievedSwagger;
 
-        apidto = new Gson().fromJson(response.getData(), APIDTO.class);
-        operationsList = apidto.getOperations();
+        APIDTO apidto = new Gson().fromJson(response.getData(), APIDTO.class);
+        List<APIOperationsDTO> operationsList = apidto.getOperations();
         // Validate the security of resources in API object
         for (APIOperationsDTO apiOperation : operationsList) {
             Assert.assertEquals(apiOperation.getAuthType(), "None", "Incorrect auth type");
@@ -686,10 +685,17 @@ public class APISecurityTestCase extends APIManagerLifecycleBaseTest {
 
         // Verify the security of API in Swagger
         retrievedSwagger = restAPIPublisher.getSwaggerByID(apiId4);
-        authTypes = validateResourceSecurity(retrievedSwagger);
+        List<Object> authTypes = validateResourceSecurity(retrievedSwagger);
         for (Object authType : authTypes) {
             Assert.assertEquals(authType, "None", "Incorrect auth type");
         }
+
+        Map<String, String> requestHeaders = new HashMap<>();
+        requestHeaders.put("accept", "text/xml");
+        HttpResponse invokeResponse =
+                HttpRequestUtil.doGet(getAPIInvocationURLHttps(OauthDisabledAPIContext, API_VERSION_1_0_0) +
+                        API_END_POINT_METHOD, requestHeaders);
+        assertEquals(invokeResponse.getResponseCode(), HttpStatus.SC_OK);
 
         // Validate for security enabled API
         HttpResponse response2 = restAPIPublisher.getAPI(apiId5);
