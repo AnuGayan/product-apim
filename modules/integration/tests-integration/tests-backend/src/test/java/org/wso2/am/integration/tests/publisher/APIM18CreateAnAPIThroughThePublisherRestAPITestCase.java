@@ -224,7 +224,7 @@ public class APIM18CreateAnAPIThroughThePublisherRestAPITestCase extends APIMInt
         validateRemoteReference(retrievedSwagger);
     }
 
-    @Test(groups = {"wso2.am"}, description = "Create APIs with archives with an incorrect master swagger file name")
+    @Test(groups = {"wso2.am"}, description = "Create APIs with archives with a random master swagger file name")
     public void testCreateApiWithArchivesWithRemoteReferencesWithIncorrectSwagger() throws Exception {
 
         String swaggerPath = getAMResourceLocation() + File.separator + "swagger" + File.separator +
