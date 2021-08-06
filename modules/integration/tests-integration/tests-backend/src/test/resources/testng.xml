@@ -164,6 +164,7 @@
             <!--class name="org.wso2.am.integration.tests.header.ESBJAVA5121CheckAuthHeaderOrderTestCase"/-->
             <!--<class name="org.wso2.am.integration.tests.other.APIEndpointTypeUpdateTestCase"/>-->
             <class name="org.wso2.am.integration.tests.other.APIImportExportTestCase"/>
+            <class name="org.wso2.am.integration.tests.other.SoapToRestTestCase"/>
             <class name="org.wso2.am.integration.tests.other.InvalidAuthTokenLargePayloadTestCase"/>
             <class name="org.wso2.am.integration.tests.other.APISearchAPIByTagTestCase"/>
             <class name="org.wso2.am.integration.tests.other.APIM4765ResourceOrderInSwagger"/>
@@ -232,12 +233,6 @@
         <classes>
             <class name="org.wso2.am.integration.tests.graphql.GraphqlTestCase"/>
             <class name="org.wso2.am.integration.tests.graphqlqueryanalysis.GraphQLQueryAnalysisTest"/>
-        </classes>
-    </test>
-
-    <test name="apim-integration-tests-soaptorest" preserve-order="true" parallel="false" group-by-instances="true">
-        <classes>
-            <class name="org.wso2.am.integration.tests.soaptorest.SoapToRestTestCase"/>
         </classes>
     </test>
 
