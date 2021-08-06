@@ -18,8 +18,10 @@
  *
  */
 
-package org.wso2.am.integration.tests.soaptorest;
+package org.wso2.am.integration.tests.other;
 
+import com.github.tomakehurst.wiremock.WireMockServer;
+import com.github.tomakehurst.wiremock.client.WireMock;
 import com.google.gson.Gson;
 import org.apache.commons.httpclient.HttpStatus;
 import org.apache.commons.io.IOUtils;
@@ -35,16 +37,18 @@ import org.testng.annotations.Test;
 import org.wso2.am.integration.clients.publisher.api.v1.dto.APIDTO;
 import org.wso2.am.integration.clients.publisher.api.v1.dto.APIOperationsDTO;
 import org.wso2.am.integration.clients.publisher.api.v1.dto.APIScopeDTO;
+import org.wso2.am.integration.clients.publisher.api.v1.dto.ResourcePolicyInfoDTO;
+import org.wso2.am.integration.clients.publisher.api.v1.dto.ResourcePolicyListDTO;
 import org.wso2.am.integration.clients.publisher.api.v1.dto.ScopeDTO;
 import org.wso2.am.integration.clients.store.api.ApiException;
 import org.wso2.am.integration.clients.store.api.v1.dto.ApplicationDTO;
 import org.wso2.am.integration.clients.store.api.v1.dto.ApplicationKeyDTO;
 import org.wso2.am.integration.clients.store.api.v1.dto.ApplicationKeyGenerateRequestDTO;
 import org.wso2.am.integration.test.Constants;
-import org.wso2.am.integration.test.utils.base.APIMIntegrationBaseTest;
 import org.wso2.am.integration.test.utils.base.APIMIntegrationConstants;
 import org.wso2.am.integration.test.utils.http.HTTPSClientUtils;
 import org.wso2.am.integration.test.utils.token.TokenUtils;
+import org.wso2.am.integration.tests.api.lifecycle.APIManagerLifecycleBaseTest;
 import org.wso2.carbon.automation.engine.annotations.ExecutionEnvironment;
 import org.wso2.carbon.automation.engine.annotations.SetEnvironment;
 import org.wso2.carbon.automation.engine.context.TestUserMode;
@@ -54,35 +58,53 @@ import javax.ws.rs.core.Response;
 import java.io.BufferedWriter;
 import java.io.File;
 import java.io.FileWriter;
+import java.io.IOException;
+import java.net.Socket;
 import java.net.URL;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import static com.github.tomakehurst.wiremock.client.WireMock.aResponse;
+import static com.github.tomakehurst.wiremock.client.WireMock.urlEqualTo;
+import static com.github.tomakehurst.wiremock.core.WireMockConfiguration.options;
 import static org.testng.Assert.assertEquals;
+import static org.testng.Assert.assertEqualsNoOrder;
+import static org.testng.Assert.assertNotEquals;
 
 @SetEnvironment(executionEnvironments = { ExecutionEnvironment.ALL })
-public class SoapToRestTestCase extends APIMIntegrationBaseTest {
+public class SoapToRestTestCase extends APIManagerLifecycleBaseTest {
     private static final Log log = LogFactory.getLog(SoapToRestTestCase.class);
 
     private final String SOAPTOREST_API_NAME = "PhoneVerification";
     private final String API_CONTEXT = "phoneverify";
     private final String API_VERSION_1_0_0 = "1.0";
-    private final String END_POINT_URL = "http://ws.cdyne.com/phoneverify/phoneverify.asmx";
     private static final String SOAPTOREST_TEST_USER = "soaptorestuser";
     private static final String SOAPTOREST_TEST_USER_PASSWORD = "soaptorestuser";
     private static final String SOAPTOREST_ROLE = "soaptorestrole";
-    private static final long WAIT_TIME = 45 * 1000;
 
+    private String endpointHost = "http://localhost";
+    private int endpointPort;
+    private int lowerPortLimit = 9950;
+    private int upperPortLimit = 9999;
     private String wsdlDefinition;
     private String soapToRestAPIId;
+    private WireMockServer wireMockServer;
+    private String apiEndPointURL;
+    private String wsdlURL;
     private String testAppId1;
     private String testAppId2;
     private String testAppId3;
+    private String testAppId4;
+    private String testAppId5;
     private String payload = "{\n" + "   \"CheckPhoneNumber\":{\n" + "      \"PhoneNumber\":\"18006785432\",\n"
             + "      \"LicenseKey\":\"0\"\n" + "   }\n" + "}";
     private String resourceName = "/checkPhoneNumber";
+    private String responseBody;
+    private APIDTO apidto;
+    private List<ResourcePolicyInfoDTO> resourcePoliciesIn;
+    private List<ResourcePolicyInfoDTO> resourcePoliciesOut;
 
     @Factory(dataProvider = "userModeDataProvider")
     public SoapToRestTestCase(TestUserMode userMode) {
@@ -94,9 +116,15 @@ public class SoapToRestTestCase extends APIMIntegrationBaseTest {
         super.init(userMode);
         userManagementClient.addUser(SOAPTOREST_TEST_USER, SOAPTOREST_TEST_USER_PASSWORD, new String[]{}, null);
         userManagementClient.addRole(SOAPTOREST_ROLE, new String[]{SOAPTOREST_TEST_USER}, new String[]{});
-        wsdlDefinition = IOUtils.toString(
-                getClass().getClassLoader().getResourceAsStream("soap" + File.separator + "phoneverify.wsdl"),
-                "UTF-8");
+        wsdlDefinition = readFile(getAMResourceLocation() + File.separator + "soap" + File.separator
+                + "phoneverify.wsdl");
+        responseBody = readFile(getAMResourceLocation() + File.separator + "soap" + File.separator
+                + "checkPhoneNumberResponseBody.xml");
+
+        // Start wiremock server
+        startWiremockServer();
+        apiEndPointURL = endpointHost + ":" + endpointPort + "/phoneverify";
+        wsdlURL = endpointHost + ":" + endpointPort + "/phoneverify/wsdl";
 
         File file = getTempFileWithContent(wsdlDefinition);
         restAPIPublisher.validateWsdlDefinition(null, file);
@@ -114,7 +142,7 @@ public class SoapToRestTestCase extends APIMIntegrationBaseTest {
 
         JSONObject endpointObject = new JSONObject();
         endpointObject.put("type", "address");
-        endpointObject.put("url", END_POINT_URL);
+        endpointObject.put("url", apiEndPointURL);
 
         JSONObject endpointConfig = new JSONObject();
         endpointConfig.put("endpoint_type", "address");
@@ -122,35 +150,146 @@ public class SoapToRestTestCase extends APIMIntegrationBaseTest {
         endpointConfig.put("production_endpoints", endpointObject);
 
         additionalPropertiesObj.put("endpointConfig", endpointConfig);
-        additionalPropertiesObj.put("gatewayEnvironments", environment);
         additionalPropertiesObj.put("policies", policies);
 
         // Create SOAPTOREST API
-        APIDTO apidto = restAPIPublisher
-                .importWSDLDefinition(file, null, additionalPropertiesObj.toString(), "SOAPTOREST");
+        apidto = restAPIPublisher
+                .importWSDLSchemaDefinition(file, null, additionalPropertiesObj.toString(), "SOAPTOREST");
         soapToRestAPIId = apidto.getId();
         HttpResponse createdApiResponse = restAPIPublisher.getAPI(soapToRestAPIId);
         assertEquals(Response.Status.OK.getStatusCode(), createdApiResponse.getResponseCode(),
                 SOAPTOREST_API_NAME + " API creation is failed");
         // Create Revision and Deploy to Gateway
         createAPIRevisionAndDeployUsingRest(soapToRestAPIId, restAPIPublisher);
-        // Publish api
+        // Publish API
         restAPIPublisher.changeAPILifeCycleStatus(soapToRestAPIId, Constants.PUBLISHED);
         waitForAPIDeploymentSync(user.getUserName(), SOAPTOREST_API_NAME, API_VERSION_1_0_0,
                 APIMIntegrationConstants.IS_API_EXISTS);
     }
 
+    @Test(groups = { "wso2.com" }, description = "Created API resources validation test case")
+    public void testValidateCreatedResources()
+            throws Exception {
+
+        String[] expectedResources = {"/checkPhoneNumbers", "/checkPhoneNumber"};
+
+        HttpResponse response = restAPIPublisher.getAPI(soapToRestAPIId);
+        APIDTO apidto = new Gson().fromJson(response.getData(), APIDTO.class);
+        List<APIOperationsDTO> operations = apidto.getOperations();
+        String[] actualResources = new String[operations.size()];
+        int index;
+        for (index = 0; index < operations.size(); index++) {
+            String resource = operations.get(index).getTarget();
+            actualResources[index] = resource;
+        }
+
+        // Check the number of resources
+        assertEquals(actualResources.length, expectedResources.length,
+                "Unexpected number of resources in the created API");
+
+        // Check all resources validity
+        assertEqualsNoOrder(actualResources, expectedResources, "Invalid set of resources");
+    }
+
+    @Test(groups = "wso2.am", description = "In/Out sequence validation test case", dependsOnMethods = {
+            "testValidateCreatedResources" })
+    public void testValidateInOutSequence()
+            throws Exception {
+
+        // Validate in-sequence
+        String inSequence = IOUtils.toString(getClass().getClassLoader().getResourceAsStream(
+                "artifacts" + File.separator + "AM" + File.separator + "soap" + File.separator
+                        + "in-sequence-check-phone-numbers.xml"), "UTF-8");
+        ResourcePolicyListDTO resourcePolicyInListDTO = restAPIPublisher
+                .getApiResourcePolicies(soapToRestAPIId, "in", "checkPhoneNumbers", "post");
+        resourcePoliciesIn = resourcePolicyInListDTO.getList();
+        resourcePoliciesIn.forEach((item) -> {
+            assertEquals(item.getContent(), inSequence, "Invalid In-Sequence");
+        });
+
+        // Validate out-sequence
+        String outSequence = IOUtils.toString(getClass().getClassLoader().getResourceAsStream(
+                "artifacts" + File.separator + "AM" + File.separator + "soap" + File.separator
+                        + "out-sequence-check-phone-numbers.xml"), "UTF-8");
+        ResourcePolicyListDTO resourcePolicyOutListDTO = restAPIPublisher
+                .getApiResourcePolicies(soapToRestAPIId, "out", "checkPhoneNumbers", "post");
+        resourcePoliciesOut = resourcePolicyOutListDTO.getList();
+        resourcePoliciesOut.forEach((item) -> {
+            assertEquals(item.getContent(), outSequence, "Invalid Out-Sequence");
+        });
+    }
+
+    @Test(groups = {"wso2.am"}, description = "Invocation of default API",
+            dependsOnMethods = {"testValidateCreatedResources"})
+    public void testDefaultAPIInvocation() throws Exception {
+
+        apidto.setIsDefaultVersion(true);
+        APIDTO updatedAPI = restAPIPublisher.updateAPI(apidto, soapToRestAPIId);
+        createAPIRevisionAndDeployUsingRest(updatedAPI.getId(), restAPIPublisher);
+        waitForAPIDeploymentSync(user.getUserName(), API_NAME, API_VERSION_1_0_0,
+                APIMIntegrationConstants.IS_API_NOT_EXISTS);
+        waitForAPIDeploymentSync(user.getUserName(), API_NAME, API_VERSION_1_0_0,
+                APIMIntegrationConstants.IS_API_NOT_EXISTS);
+
+        String soapToRestAppName = "PhoneVerificationDefaultApp";
+        testAppId1 = createSoapToRestAppAndSubscribeToAPI(soapToRestAppName, "OAUTH", soapToRestAPIId);
+
+        // Generate token
+        ArrayList<String> grantTypes = new ArrayList<>();
+        grantTypes.add(APIMIntegrationConstants.GRANT_TYPE.CLIENT_CREDENTIAL);
+        ApplicationKeyDTO applicationKeyDTO = restAPIStore
+                .generateKeys(testAppId1, "36000", "", ApplicationKeyGenerateRequestDTO.KeyTypeEnum.PRODUCTION, null,
+                        grantTypes);
+
+        String accessToken = applicationKeyDTO.getToken().getAccessToken();
+        String invokeURL = getAPIInvocationURLHttp(API_CONTEXT) + resourceName;
+
+        Map<String, String> requestHeaders = new HashMap<String, String>();
+        requestHeaders.put(APIMIntegrationConstants.AUTHORIZATION_HEADER, "Bearer " + accessToken);
+        requestHeaders.put("Content-Type", "application/json");
+        HttpResponse serviceResponse = HTTPSClientUtils.doPost(invokeURL, requestHeaders, payload);
+
+        Assert.assertEquals(serviceResponse.getResponseCode(), HttpStatus.SC_OK, "Response code is not as expected");
+    }
+
+    @Test(groups = {"wso2.am"}, description = "Invocation of a revisioned and deployed API",
+            dependsOnMethods = {"testValidateCreatedResources"})
+    public void testRevisionedAPIInvocation() throws Exception {
+        createAPIRevisionAndDeployUsingRest(soapToRestAPIId, restAPIPublisher);
+        waitForAPIDeploymentSync(user.getUserName(), API_NAME, API_VERSION_1_0_0,
+                APIMIntegrationConstants.IS_API_NOT_EXISTS);
+
+        String soapToRestAppName = "PhoneVerificationRevisionedApp";
+        testAppId2 = createSoapToRestAppAndSubscribeToAPI(soapToRestAppName, "OAUTH", soapToRestAPIId);
+
+        // Generate token
+        ArrayList<String> grantTypes = new ArrayList<>();
+        grantTypes.add(APIMIntegrationConstants.GRANT_TYPE.CLIENT_CREDENTIAL);
+        ApplicationKeyDTO applicationKeyDTO = restAPIStore
+                .generateKeys(testAppId2, "36000", "", ApplicationKeyGenerateRequestDTO.KeyTypeEnum.PRODUCTION, null,
+                        grantTypes);
+
+        String accessToken = applicationKeyDTO.getToken().getAccessToken();
+        String invokeURL = getAPIInvocationURLHttp(API_CONTEXT, API_VERSION_1_0_0) + resourceName;
+
+        Map<String, String> requestHeaders = new HashMap<String, String>();
+        requestHeaders.put(APIMIntegrationConstants.AUTHORIZATION_HEADER, "Bearer " + accessToken);
+        requestHeaders.put("Content-Type", "application/json");
+        HttpResponse serviceResponse = HTTPSClientUtils.doPost(invokeURL, requestHeaders, payload);
+
+        Assert.assertEquals(serviceResponse.getResponseCode(), HttpStatus.SC_OK, "Response code is not as expected");
+    }
 
     @Test(groups = {"wso2.am"}, description = "API invocation using JWT App")
     public void testInvokeSoapToRestAPIUsingJWTApplication() throws Exception {
-        String graphqlJwtAppName = "PhoneVerificationJWTAPP";
-        testAppId1 = createSoapToRestAppAndSubscribeToAPI(graphqlJwtAppName, "JWT");
+        String graphqlJwtAppName = "PhoneVerificationJWTApp";
+        testAppId3 = createSoapToRestAppAndSubscribeToAPI(graphqlJwtAppName, "JWT", soapToRestAPIId);
 
         // Generate token
         ArrayList<String> grantTypes = new ArrayList<>();
         grantTypes.add(APIMIntegrationConstants.GRANT_TYPE.PASSWORD);
         grantTypes.add(APIMIntegrationConstants.GRANT_TYPE.CLIENT_CREDENTIAL);
-        ApplicationKeyDTO applicationKeyDTO = restAPIStore.generateKeys(testAppId1, "36000", "",
+        ApplicationKeyDTO applicationKeyDTO = restAPIStore.generateKeys(testAppId3, "36000", "",
                 ApplicationKeyGenerateRequestDTO.KeyTypeEnum.PRODUCTION, null, grantTypes);
 
         String accessToken = applicationKeyDTO.getToken().getAccessToken();
@@ -163,18 +302,17 @@ public class SoapToRestTestCase extends APIMIntegrationBaseTest {
 
         Assert.assertEquals(serviceResponse.getResponseCode(), HttpStatus.SC_OK,
                 "Response code is not as expected");
-
     }
 
     @Test(groups = {"wso2.am"}, description = "API invocation using oauth App")
     public void testInvokeSoapToRestAPIUsingOAuthApplication() throws Exception {
-        String soapToRestOAUTHAppName = "PhoneVerificationOauthAPP";
-        testAppId2 = createSoapToRestAppAndSubscribeToAPI(soapToRestOAUTHAppName, "OAUTH");
+        String soapToRestOAUTHAppName = "PhoneVerificationOauthApp";
+        testAppId4 = createSoapToRestAppAndSubscribeToAPI(soapToRestOAUTHAppName, "OAUTH", soapToRestAPIId);
 
         // Generate token
         ArrayList<String> grantTypes = new ArrayList<>();
         grantTypes.add(APIMIntegrationConstants.GRANT_TYPE.CLIENT_CREDENTIAL);
-        ApplicationKeyDTO applicationKeyDTO = restAPIStore.generateKeys(testAppId2, "36000", "",
+        ApplicationKeyDTO applicationKeyDTO = restAPIStore.generateKeys(testAppId4, "36000", "",
                 ApplicationKeyGenerateRequestDTO.KeyTypeEnum.PRODUCTION, null, grantTypes);
 
         String accessToken = applicationKeyDTO.getToken().getAccessToken();
@@ -212,8 +350,11 @@ public class SoapToRestTestCase extends APIMIntegrationBaseTest {
         APIDTO apidto = g.fromJson(createdApiResponse.getData(), APIDTO.class);
         apidto.setScopes(apiScopeList);
         APIDTO updatedAPI = restAPIPublisher.updateAPI(apidto, soapToRestAPIId);
-        // Create Revision and Deploy to Gateway
         createAPIRevisionAndDeployUsingRest(soapToRestAPIId, restAPIPublisher);
+        waitForAPIDeploymentSync(user.getUserName(), API_NAME, API_VERSION_1_0_0,
+                APIMIntegrationConstants.IS_API_NOT_EXISTS);
+        waitForAPIDeploymentSync(user.getUserName(), API_NAME, API_VERSION_1_0_0,
+                APIMIntegrationConstants.IS_API_NOT_EXISTS);
 
         ArrayList scope = new ArrayList();
         scope.add("subscriber");
@@ -228,10 +369,17 @@ public class SoapToRestTestCase extends APIMIntegrationBaseTest {
 
         apidto.operations(operations);
         restAPIPublisher.updateAPI(apidto, soapToRestAPIId);
-        // Create Revision and Deploy to Gateway
+        undeployAndDeleteAPIRevisionsUsingRest(soapToRestAPIId, restAPIPublisher);
+        waitForAPIDeploymentSync(user.getUserName(), API_NAME, API_VERSION_1_0_0,
+                APIMIntegrationConstants.IS_API_NOT_EXISTS);
         createAPIRevisionAndDeployUsingRest(soapToRestAPIId, restAPIPublisher);
+        waitForAPIDeploymentSync(user.getUserName(), API_NAME, API_VERSION_1_0_0,
+                APIMIntegrationConstants.IS_API_NOT_EXISTS);
+        waitForAPIDeploymentSync(user.getUserName(), API_NAME, API_VERSION_1_0_0,
+                APIMIntegrationConstants.IS_API_NOT_EXISTS);
 
-        testAppId3 = createSoapToRestAppAndSubscribeToAPI("testOperationalLevelOAuthScopesForSoapToRest", "OAUTH");
+        testAppId5 = createSoapToRestAppAndSubscribeToAPI("testOperationalLevelOAuthScopesForSoapToRest", "OAUTH",
+                soapToRestAPIId);
         // Keep sufficient time to update map
         Thread.sleep(10000);
         waitForAPIDeploymentSync(apidto.getProvider(), apidto.getName(), apidto.getVersion(),
@@ -247,7 +395,7 @@ public class SoapToRestTestCase extends APIMIntegrationBaseTest {
         requestHeaders.put("Content-Type", "application/json");
 
         // Invoke api without authorized scope
-        ApplicationKeyDTO applicationKeyDTO = restAPIStore.generateKeys(testAppId3, "36000", "",
+        ApplicationKeyDTO applicationKeyDTO = restAPIStore.generateKeys(testAppId5, "36000", "",
                 ApplicationKeyGenerateRequestDTO.KeyTypeEnum.PRODUCTION, null, grantTypes);
         String accessToken = applicationKeyDTO.getToken().getAccessToken();
         String tokenJti = TokenUtils.getJtiOfJwtToken(accessToken);
@@ -301,9 +449,14 @@ public class SoapToRestTestCase extends APIMIntegrationBaseTest {
 
         apidto.operations(operations);
         restAPIPublisher.updateAPI(apidto, soapToRestAPIId);
-        // Create Revision and Deploy to Gateway
+        undeployAndDeleteAPIRevisionsUsingRest(soapToRestAPIId, restAPIPublisher);
+        waitForAPIDeploymentSync(user.getUserName(), API_NAME, API_VERSION_1_0_0,
+                APIMIntegrationConstants.IS_API_NOT_EXISTS);
         createAPIRevisionAndDeployUsingRest(soapToRestAPIId, restAPIPublisher);
-        waitForAPIDeployment();
+        waitForAPIDeploymentSync(user.getUserName(), API_NAME, API_VERSION_1_0_0,
+                APIMIntegrationConstants.IS_API_NOT_EXISTS);
+        waitForAPIDeploymentSync(user.getUserName(), API_NAME, API_VERSION_1_0_0,
+                APIMIntegrationConstants.IS_API_EXISTS);
 
         // Generate token
         ArrayList<String> grantTypes = new ArrayList<>();
@@ -317,19 +470,107 @@ public class SoapToRestTestCase extends APIMIntegrationBaseTest {
         // Invoke api without security
         String accessToken = "";
         requestHeaders.put(APIMIntegrationConstants.AUTHORIZATION_HEADER, "Bearer " + accessToken);
-        boolean status = false;
-        long waitTime = System.currentTimeMillis() + WAIT_TIME;
         HttpResponse serviceResponse = HTTPSClientUtils.doPost(invokeURL, requestHeaders, payload);
         Assert.assertEquals(serviceResponse.getResponseCode(), HttpStatus.SC_OK,
                 "Response code is not as expected");
     }
 
-    private String createSoapToRestAppAndSubscribeToAPI(String appName, String tokenType) throws ApiException {
+    @Test(groups = "wso2.am", description = "In/Out sequence validation test case", dependsOnMethods = {
+            "testValidateInOutSequence", "testOperationalLevelSecurityForSoapToRest" })
+    public void testUpdateInOutSequence() throws Exception {
+
+        // Update in-sequence
+        String updatedInSequence = IOUtils.toString(getClass().getClassLoader().getResourceAsStream(
+                "artifacts" + File.separator + "AM" + File.separator + "soap" + File.separator
+                        + "updated-in-sequence-check-phone-numbers.xml"), "UTF-8");
+        resourcePoliciesIn.forEach((item) -> {
+            ResourcePolicyInfoDTO updatedResourcePoliciesIn = null;
+            item.setContent(updatedInSequence);
+            try {
+                updatedResourcePoliciesIn = restAPIPublisher
+                        .updateApiResourcePolicies(soapToRestAPIId, item.getId(), item.getResourcePath(), item, null);
+            } catch (org.wso2.am.integration.clients.publisher.api.ApiException e) {
+                log.error(e.getMessage());
+            }
+            assertEquals(updatedResourcePoliciesIn.getContent(), updatedInSequence, "In-Sequence not updated");
+        });
+
+        // Update out-sequence
+        String updatedOutSequence = IOUtils.toString(getClass().getClassLoader().getResourceAsStream(
+                "artifacts" + File.separator + "AM" + File.separator + "soap" + File.separator
+                        + "updated-out-sequence-check-phone-numbers.xml"), "UTF-8");
+        resourcePoliciesOut.forEach((item) -> {
+            item.setContent(updatedOutSequence);
+            ResourcePolicyInfoDTO updatedResourcePoliciesOut = null;
+            try {
+                updatedResourcePoliciesOut = restAPIPublisher
+                        .updateApiResourcePolicies(soapToRestAPIId, item.getId(), item.getResourcePath(), item, null);
+            } catch (org.wso2.am.integration.clients.publisher.api.ApiException e) {
+                log.error(e.getMessage());
+            }
+            assertEquals(updatedResourcePoliciesOut.getContent(), updatedOutSequence, "Out-Sequence not updated");
+        });
+    }
+
+    private void startWiremockServer() {
+        endpointPort = getAvailablePort();
+        assertNotEquals(endpointPort, -1, "No available port in the range " + lowerPortLimit + "-" +
+                upperPortLimit + " was found");
+        wireMockServer = new WireMockServer(options().port(endpointPort));
+        wireMockServer.stubFor(WireMock.get(urlEqualTo("/phoneverify/wsdl")).willReturn(aResponse()
+                .withStatus(200).withHeader("Content-Type", "text/xml").withBody(wsdlDefinition)));
+        wireMockServer.stubFor(WireMock.post(urlEqualTo("/phoneverify")).willReturn(aResponse()
+                .withStatus(200).withHeader("Content-Type", "text/xml").withBody(responseBody)));
+        wireMockServer.start();
+    }
+
+    /**
+     * Find a free port to start backend WebSocket server in given port range
+     *
+     * @return Available Port Number
+     */
+    private int getAvailablePort() {
+        while (lowerPortLimit < upperPortLimit) {
+            if (isPortFree(lowerPortLimit)) {
+                return lowerPortLimit;
+            }
+            lowerPortLimit++;
+        }
+        return -1;
+    }
+
+    /**
+     * Check whether give port is available
+     *
+     * @param port Port Number
+     * @return status
+     */
+    private boolean isPortFree(int port) {
+        Socket s = null;
+        try {
+            s = new Socket(endpointHost, port);
+            // something is using the port and has responded.
+            return false;
+        } catch (IOException e) {
+            // port available
+            return true;
+        } finally {
+            if (s != null) {
+                try {
+                    s.close();
+                } catch (IOException e) {
+                    throw new RuntimeException("Unable to close connection ", e);
+                }
+            }
+        }
+    }
+
+    private String createSoapToRestAppAndSubscribeToAPI(String appName, String tokenType, String apiId) throws ApiException {
         ApplicationDTO applicationDTO = restAPIStore.addApplicationWithTokenType(appName,
                 APIMIntegrationConstants.APPLICATION_TIER.UNLIMITED, "",
                 "test app for SOAPTOREST API", tokenType);
         String testApiId = applicationDTO.getApplicationId();
-        restAPIStore.subscribeToAPI(soapToRestAPIId, testApiId, APIMIntegrationConstants.API_TIER.UNLIMITED);
+        restAPIStore.subscribeToAPI(apiId, testApiId, APIMIntegrationConstants.API_TIER.UNLIMITED);
         return testApiId;
     }
 
@@ -357,8 +598,11 @@ public class SoapToRestTestCase extends APIMIntegrationBaseTest {
         restAPIStore.deleteApplication(testAppId1);
         restAPIStore.deleteApplication(testAppId2);
         restAPIStore.deleteApplication(testAppId3);
+        restAPIStore.deleteApplication(testAppId4);
+        restAPIStore.deleteApplication(testAppId5);
         undeployAndDeleteAPIRevisionsUsingRest(soapToRestAPIId, restAPIPublisher);
         restAPIPublisher.deleteAPI(soapToRestAPIId);
+        wireMockServer.stop();
         super.cleanUp();
     }
 }

@@ -31,6 +31,7 @@ import org.wso2.am.integration.clients.publisher.api.v1.ApiDocumentsApi;
 import org.wso2.am.integration.clients.publisher.api.v1.ApiLifecycleApi;
 import org.wso2.am.integration.clients.publisher.api.v1.ApiProductRevisionsApi;
 import org.wso2.am.integration.clients.publisher.api.v1.ApiProductsApi;
+import org.wso2.am.integration.clients.publisher.api.v1.ApiResourcePoliciesApi;
 import org.wso2.am.integration.clients.publisher.api.v1.ApiRevisionsApi;
 import org.wso2.am.integration.clients.publisher.api.v1.ClientCertificatesApi;
 import org.wso2.am.integration.clients.publisher.api.v1.CommentsApi;
@@ -74,6 +75,8 @@ import org.wso2.am.integration.clients.publisher.api.v1.dto.MediationListDTO;
 import org.wso2.am.integration.clients.publisher.api.v1.dto.OpenAPIDefinitionValidationResponseDTO;
 import org.wso2.am.integration.clients.publisher.api.v1.dto.PatchRequestBodyDTO;
 import org.wso2.am.integration.clients.publisher.api.v1.dto.PostRequestBodyDTO;
+import org.wso2.am.integration.clients.publisher.api.v1.dto.ResourcePolicyInfoDTO;
+import org.wso2.am.integration.clients.publisher.api.v1.dto.ResourcePolicyListDTO;
 import org.wso2.am.integration.clients.publisher.api.v1.dto.ScopeDTO;
 import org.wso2.am.integration.clients.publisher.api.v1.dto.ScopeListDTO;
 import org.wso2.am.integration.clients.publisher.api.v1.dto.SearchResultListDTO;
@@ -109,6 +112,7 @@ public class RestAPIPublisherImpl {
     private ApiProductsApi apiProductsApi = new ApiProductsApi();
     public ApiDocumentsApi apiDocumentsApi = new ApiDocumentsApi();
     public ApiRevisionsApi apiRevisionsApi = new ApiRevisionsApi();
+    public ApiResourcePoliciesApi apiResourcePoliciesApi = new ApiResourcePoliciesApi();
     public ApiProductRevisionsApi apiProductRevisionsApi = new ApiProductRevisionsApi();
     public ThrottlingPoliciesApi throttlingPoliciesApi = new ThrottlingPoliciesApi();
     public ClientCertificatesApi clientCertificatesApi = new ClientCertificatesApi();
@@ -166,6 +170,7 @@ public class RestAPIPublisherImpl {
         apIsApi.setApiClient(apiPublisherClient);
 	    apiProductsApi.setApiClient(apiPublisherClient);
 	    apiRevisionsApi.setApiClient(apiPublisherClient);
+        apiResourcePoliciesApi.setApiClient(apiPublisherClient);
 	    apiProductRevisionsApi.setApiClient(apiPublisherClient);
         graphQlSchemaApi.setApiClient(apiPublisherClient);
         commentsApi.setApiClient(apiPublisherClient);
@@ -1042,6 +1047,30 @@ public class RestAPIPublisherImpl {
         ApiResponse<WSDLValidationResponseDTO> response = validationApi
                 .validateWSDLDefinitionWithHttpInfo(url, wsdlDefinition);
         Assert.assertEquals(HttpStatus.SC_OK, response.getStatusCode());
+        return response.getData();
+    }
+
+    public APIDTO importWSDLSchemaDefinition(File file, String url, String properties, String type)
+            throws ApiException {
+        ApiResponse<APIDTO> apiDtoApiResponse = apIsApi.importWSDLDefinitionWithHttpInfo(file, url, properties, type);
+        Assert.assertEquals(HttpStatus.SC_CREATED, apiDtoApiResponse.getStatusCode());
+        return apiDtoApiResponse.getData();
+    }
+
+    public ResourcePolicyListDTO getApiResourcePolicies(String apiId, String sequenceType, String resourcePath,
+            String verb) throws ApiException {
+        ApiResponse<ResourcePolicyListDTO> policyListDTOApiResponse = apiResourcePoliciesApi
+                .getAPIResourcePoliciesWithHttpInfo(apiId, sequenceType, resourcePath, verb, null);
+        Assert.assertEquals(policyListDTOApiResponse.getStatusCode(), HttpStatus.SC_OK);
+        return policyListDTOApiResponse.getData();
+    }
+
+    public ResourcePolicyInfoDTO updateApiResourcePolicies(String apiId, String resourcePolicyId, String resourcePath,
+            ResourcePolicyInfoDTO resourcePolicyInfoDTO, String verb) throws ApiException {
+
+        ApiResponse<ResourcePolicyInfoDTO> response = apiResourcePoliciesApi
+                .updateAPIResourcePoliciesByPolicyIdWithHttpInfo(apiId, resourcePolicyId, resourcePolicyInfoDTO, null);
+        Assert.assertEquals(response.getStatusCode(), HttpStatus.SC_OK);
         return response.getData();
     }
 
