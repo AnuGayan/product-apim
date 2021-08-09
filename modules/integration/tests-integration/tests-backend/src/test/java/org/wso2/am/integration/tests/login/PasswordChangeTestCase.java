@@ -20,25 +20,17 @@ package org.wso2.am.integration.tests.login;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
-import org.testng.Assert;
+import org.junit.Assert;
 import org.testng.annotations.AfterClass;
 import org.testng.annotations.BeforeClass;
 import org.testng.annotations.DataProvider;
 import org.testng.annotations.Factory;
 import org.testng.annotations.Test;
-import org.wso2.am.integration.clients.store.api.ApiResponse;
-import org.wso2.am.integration.clients.store.api.v1.dto.ApplicationDTO;
-import org.wso2.am.integration.clients.store.api.v1.dto.ApplicationKeyDTO;
-import org.wso2.am.integration.clients.store.api.v1.dto.ApplicationKeyGenerateRequestDTO;
 import org.wso2.am.integration.test.impl.RestAPIStoreImpl;
-import org.wso2.am.integration.test.utils.base.APIMIntegrationConstants;
 import org.wso2.am.integration.tests.api.lifecycle.APIManagerLifecycleBaseTest;
 import org.wso2.carbon.automation.engine.context.TestUserMode;
 import org.wso2.carbon.automation.test.utils.http.client.HttpResponse;
 import org.wso2.carbon.integration.common.admin.client.UserManagementClient;
-import org.wso2.carbon.tenant.mgt.stub.beans.xsd.TenantInfoBean;
-
-import java.util.ArrayList;
 
 import static org.testng.Assert.assertEquals;
 
@@ -49,12 +41,6 @@ public class PasswordChangeTestCase extends APIManagerLifecycleBaseTest {
     private final String CURRENT_USER_PASSWORD = "password123";
     private final String NEW_USER_PASSWORD = "123password";
     private final String INTERNAL_ROLE_SUBSCRIBER = "Internal/subscriber";
-    private RestAPIStoreImpl restAPIStoreClient;
-
-    private static final String TENANT_ADMIN = "admin";
-    private static final String TENANT_ADMIN_PWD = "test1";
-    private static final String TENANT_DOMAIN = "tenant1.com";
-    String appId;
 
     @Factory(dataProvider = "userModeDataProvider")
     public PasswordChangeTestCase(TestUserMode userMode) {
@@ -73,14 +59,14 @@ public class PasswordChangeTestCase extends APIManagerLifecycleBaseTest {
 
     @BeforeClass(alwaysRun = true)
     public void setEnvironment() throws Exception {
-        super.init(userMode);
+
+        super.init();
         userManagementClient = new UserManagementClient(keyManagerContext.getContextUrls().getBackEndUrl(),
                 keyManagerContext.getContextTenant().getTenantAdmin().getUserName(),
                 keyManagerContext.getContextTenant().getTenantAdmin().getPassword());
 
         userManagementClient.addUser(USER_NAME, CURRENT_USER_PASSWORD,
                 new String[]{INTERNAL_ROLE_SUBSCRIBER}, null);
-        tenantManagementServiceClient.addTenant(TENANT_DOMAIN, TENANT_ADMIN_PWD, TENANT_ADMIN, "demo");
     }
 
     @Test(groups = {"wso2.am"}, description = "Change devportal user password")
@@ -98,40 +84,6 @@ public class PasswordChangeTestCase extends APIManagerLifecycleBaseTest {
         } catch (RuntimeException e) {
             Assert.fail("Password change has not been executed correctly. New password is not honored. Error "
                                             + "occurred: " + e.getMessage());
-        }
-    }
-
-    @Test(groups = {"wso2.am"}, description = "Change Tenant Admin Password and verify whether admin can update keys")
-    public void testChangeTenantAdminPassword() throws Exception {
-        if (TestUserMode.SUPER_TENANT_ADMIN == userMode) {
-            ArrayList grantTypes = new ArrayList();
-            grantTypes.add(APIMIntegrationConstants.GRANT_TYPE.CLIENT_CREDENTIAL);
-            restAPIStoreClient = new RestAPIStoreImpl(TENANT_ADMIN, TENANT_ADMIN_PWD, TENANT_DOMAIN, storeURLHttps);
-            //Create application
-            ApplicationDTO appOfTenantAdminDTO = restAPIStoreClient.addApplication("Tenant1App",
-                    APIMIntegrationConstants.APPLICATION_TIER.TEN_PER_MIN, "", "App of tenant admin");
-            appId = appOfTenantAdminDTO.getApplicationId();
-            ApplicationKeyDTO appDTO = restAPIStoreClient.generateKeys(appId,
-                    APIMIntegrationConstants.DEFAULT_TOKEN_VALIDITY_TIME, "",
-                    ApplicationKeyGenerateRequestDTO.KeyTypeEnum.PRODUCTION, null, grantTypes);
-
-            //Update tenant admin password
-            TenantInfoBean tenantInfoBean = new TenantInfoBean();
-            tenantInfoBean = tenantManagementServiceClient.getTenant(TENANT_DOMAIN);
-            tenantInfoBean.setAdminPassword("newPassword");
-            tenantManagementServiceClient.updateTenant(tenantInfoBean);
-            // test whether the password change has been effected correctly
-            try {
-                restAPIStoreClient = new RestAPIStoreImpl(TENANT_ADMIN, "newPassword", TENANT_DOMAIN,
-                        "https://localhost:9943/");
-            } catch (RuntimeException e) {
-                Assert.fail("Password change has not been executed correctly. New password is not honored. Error "
-                        + "occurred: " + e.getMessage());
-            }
-            // Generate keys for application
-            ApiResponse<ApplicationKeyDTO> newDTO = restAPIStoreClient.
-                    updateKeys(appId, ApplicationKeyDTO.KeyTypeEnum.PRODUCTION.toString(), appDTO);
-            Assert.assertNotNull(newDTO);
         }
     }
 
