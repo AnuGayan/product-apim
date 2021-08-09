@@ -60,7 +60,7 @@ public class JWTBandwidthThrottlingTestCase extends APIMIntegrationBaseTest {
             + "00000000000000000000000000\"}";
     private String app3Id;
     private final String INTERNAL_EVERYONE= "Internal/everyone";
-    private List<String> roleList = new ArrayList<>();
+    private List<String> roleList;
     private SubscriptionThrottlePolicyPermissionDTO permissions;
 
     private static final Log log = LogFactory.getLog(JWTBandwidthThrottlingTestCase.class);
