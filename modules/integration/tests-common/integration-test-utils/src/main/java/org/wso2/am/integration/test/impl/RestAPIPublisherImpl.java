@@ -175,6 +175,7 @@ public class RestAPIPublisherImpl {
         sharedScopesApi.setApiClient(apiPublisherClient);
         globalMediationPoliciesApi.setApiClient(apiPublisherClient);
         settingsApi.setApiClient(apiPublisherClient);
+        endpointCertificatesApi.setApiClient(apiPublisherClient);
         this.tenantDomain = tenantDomain;
     }
 
