@@ -139,6 +139,7 @@ public class APIImportExportTestCase extends APIManagerLifecycleBaseTest {
     private String newApplicationId;
     private String preservePublisherApiId;
     private String notPreservePublisherApiId;
+    String publisherAccessControlAPIId;
     private ArrayList<String> grantTypes;
     private final String testEPSecurityUser = "test_ep_user";
     private final String testEPSecurityPassword  = "test_ep_password";
@@ -281,7 +282,7 @@ public class APIImportExportTestCase extends APIManagerLifecycleBaseTest {
         brokenApiRequest.setProvider(provider);
         brokenApiRequest.setAccessControl(RESTRICTED_ACCESS_CONTROL);
         brokenApiRequest.setAccessControlRoles(ALLOWED_ROLE);
-        String publisherAccessControlAPIId = createAndPublishAPIUsingRest(brokenApiRequest, restAPIPublisher, false);
+        publisherAccessControlAPIId = createAndPublishAPIUsingRest(brokenApiRequest, restAPIPublisher, false);
         APIDTO apidto = restAPIPublisher.getAPIByID(publisherAccessControlAPIId);
         Assert.assertEquals(apidto.getAccessControlRoles().get(0), "allowedrole");
 
@@ -805,6 +806,7 @@ public class APIImportExportTestCase extends APIManagerLifecycleBaseTest {
         restAPIPublisher.deleteAPI(newApiId);
         restAPIPublisher.deleteAPI(preservePublisherApiId);
         restAPIPublisher.deleteAPI(notPreservePublisherApiId);
+        restAPIPublisher.deleteAPI(publisherAccessControlAPIId);
         boolean deleteStatus;
         deleteStatus = apiZip.delete();
         Assert.assertTrue(deleteStatus, "temp file delete not successful");
