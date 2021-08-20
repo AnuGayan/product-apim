@@ -146,6 +146,7 @@ public class SecondaryUserStoreCaseInsensitiveTestCase extends APIManagerLifecyc
 
     @AfterClass(alwaysRun = true)
     public void destroy() throws Exception {
+        super.cleanUp();
         serverConfigurationManager.restoreToLastConfiguration();
     }
 }
