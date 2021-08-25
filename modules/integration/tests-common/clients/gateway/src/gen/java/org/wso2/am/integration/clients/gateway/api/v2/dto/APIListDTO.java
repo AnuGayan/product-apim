@@ -25,39 +25,61 @@ import io.swagger.annotations.ApiModelProperty;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
+import org.wso2.am.integration.clients.gateway.api.v2.dto.APIMetaDataDTO;
 
 /**
- * EndpointsDTO
+ * APIListDTO
  */
 
-public class EndpointsDTO {
-  @SerializedName("endpoints")
-  private List<String> endpoints = null;
+public class APIListDTO {
+  @SerializedName("count")
+  private Integer count = null;
 
-  public EndpointsDTO endpoints(List<String> endpoints) {
-    this.endpoints = endpoints;
-    return this;
-  }
+  @SerializedName("list")
+  private List<APIMetaDataDTO> list = null;
 
-  public EndpointsDTO addEndpointsItem(String endpointsItem) {
-    if (this.endpoints == null) {
-      this.endpoints = new ArrayList<>();
-    }
-    this.endpoints.add(endpointsItem);
+  public APIListDTO count(Integer count) {
+    this.count = count;
     return this;
   }
 
    /**
-   * The end points which has been deployed in the gateway 
-   * @return endpoints
+   * Number of APIs returned. 
+   * @return count
   **/
-  @ApiModelProperty(value = "The end points which has been deployed in the gateway ")
-  public List<String> getEndpoints() {
-    return endpoints;
+  @ApiModelProperty(example = "1", value = "Number of APIs returned. ")
+  public Integer getCount() {
+    return count;
   }
 
-  public void setEndpoints(List<String> endpoints) {
-    this.endpoints = endpoints;
+  public void setCount(Integer count) {
+    this.count = count;
+  }
+
+  public APIListDTO list(List<APIMetaDataDTO> list) {
+    this.list = list;
+    return this;
+  }
+
+  public APIListDTO addListItem(APIMetaDataDTO listItem) {
+    if (this.list == null) {
+      this.list = new ArrayList<>();
+    }
+    this.list.add(listItem);
+    return this;
+  }
+
+   /**
+   * Get list
+   * @return list
+  **/
+  @ApiModelProperty(value = "")
+  public List<APIMetaDataDTO> getList() {
+    return list;
+  }
+
+  public void setList(List<APIMetaDataDTO> list) {
+    this.list = list;
   }
 
 
@@ -69,22 +91,24 @@ public class EndpointsDTO {
     if (o == null || getClass() != o.getClass()) {
       return false;
     }
-    EndpointsDTO endpoints = (EndpointsDTO) o;
-    return Objects.equals(this.endpoints, endpoints.endpoints);
+    APIListDTO apIList = (APIListDTO) o;
+    return Objects.equals(this.count, apIList.count) &&
+        Objects.equals(this.list, apIList.list);
   }
 
   @Override
   public int hashCode() {
-    return Objects.hash(endpoints);
+    return Objects.hash(count, list);
   }
 
 
   @Override
   public String toString() {
     StringBuilder sb = new StringBuilder();
-    sb.append("class EndpointsDTO {\n");
+    sb.append("class APIListDTO {\n");
     
-    sb.append("    endpoints: ").append(toIndentedString(endpoints)).append("\n");
+    sb.append("    count: ").append(toIndentedString(count)).append("\n");
+    sb.append("    list: ").append(toIndentedString(list)).append("\n");
     sb.append("}");
     return sb.toString();
   }

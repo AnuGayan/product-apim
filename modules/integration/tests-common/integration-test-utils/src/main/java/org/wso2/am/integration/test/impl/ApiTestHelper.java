@@ -239,7 +239,7 @@ public class ApiTestHelper {
 
     public ApplicationDTO verifySubscription(org.wso2.am.integration.clients.store.api.v1.dto.APIDTO apiDTO,
                                              String applicationName, String subscriptionPolicy)
-            throws org.wso2.am.integration.clients.store.api.ApiException {
+            throws org.wso2.am.integration.clients.store.api.ApiException, APIManagerIntegrationTestException {
         ApplicationDTO applicationDTO = restAPIStore.addApplication(applicationName,
                 APIMIntegrationConstants.APPLICATION_TIER.UNLIMITED, "http://localhost", "");
 

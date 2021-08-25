@@ -18,6 +18,7 @@
 
 package org.wso2.am.integration.tests.resources;
 
+import org.testng.Assert;
 import org.testng.annotations.AfterClass;
 import org.testng.annotations.BeforeClass;
 import org.testng.annotations.DataProvider;
@@ -32,7 +33,6 @@ import org.wso2.carbon.automation.test.utils.http.client.HttpResponse;
 import javax.ws.rs.core.Response;
 import java.net.URL;
 
-import static org.junit.Assert.assertNotEquals;
 import static org.testng.Assert.assertEquals;
 import static org.testng.AssertJUnit.assertNotNull;
 
@@ -195,7 +195,7 @@ public class APIResourceModificationTestCase extends APIMIntegrationBaseTest {
         String swaggerResponse = restAPIPublisher.updateSwagger(apiId, modifiedResource);
         assertNotNull(swaggerResponse);
         String updatedSwagger = restAPIPublisher.getSwaggerByID(apiId);
-        assertNotEquals(updatedSwagger, oldSwagger, "Modifying resources failed for API");
+        Assert.assertNotEquals(updatedSwagger, oldSwagger, "Modifying resources failed for API");
     }
 
     @AfterClass(alwaysRun = true)

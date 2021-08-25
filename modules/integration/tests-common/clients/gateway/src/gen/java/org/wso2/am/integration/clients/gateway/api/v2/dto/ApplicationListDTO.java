@@ -25,39 +25,61 @@ import io.swagger.annotations.ApiModelProperty;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
+import org.wso2.am.integration.clients.gateway.api.v2.dto.ApplicationInfoDTO;
 
 /**
- * EndpointsDTO
+ * ApplicationListDTO
  */
 
-public class EndpointsDTO {
-  @SerializedName("endpoints")
-  private List<String> endpoints = null;
+public class ApplicationListDTO {
+  @SerializedName("count")
+  private Integer count = null;
 
-  public EndpointsDTO endpoints(List<String> endpoints) {
-    this.endpoints = endpoints;
-    return this;
-  }
+  @SerializedName("list")
+  private List<ApplicationInfoDTO> list = null;
 
-  public EndpointsDTO addEndpointsItem(String endpointsItem) {
-    if (this.endpoints == null) {
-      this.endpoints = new ArrayList<>();
-    }
-    this.endpoints.add(endpointsItem);
+  public ApplicationListDTO count(Integer count) {
+    this.count = count;
     return this;
   }
 
    /**
-   * The end points which has been deployed in the gateway 
-   * @return endpoints
+   * Number of Applications returned. 
+   * @return count
   **/
-  @ApiModelProperty(value = "The end points which has been deployed in the gateway ")
-  public List<String> getEndpoints() {
-    return endpoints;
+  @ApiModelProperty(example = "1", value = "Number of Applications returned. ")
+  public Integer getCount() {
+    return count;
   }
 
-  public void setEndpoints(List<String> endpoints) {
-    this.endpoints = endpoints;
+  public void setCount(Integer count) {
+    this.count = count;
+  }
+
+  public ApplicationListDTO list(List<ApplicationInfoDTO> list) {
+    this.list = list;
+    return this;
+  }
+
+  public ApplicationListDTO addListItem(ApplicationInfoDTO listItem) {
+    if (this.list == null) {
+      this.list = new ArrayList<>();
+    }
+    this.list.add(listItem);
+    return this;
+  }
+
+   /**
+   * Get list
+   * @return list
+  **/
+  @ApiModelProperty(value = "")
+  public List<ApplicationInfoDTO> getList() {
+    return list;
+  }
+
+  public void setList(List<ApplicationInfoDTO> list) {
+    this.list = list;
   }
 
 
@@ -69,22 +91,24 @@ public class EndpointsDTO {
     if (o == null || getClass() != o.getClass()) {
       return false;
     }
-    EndpointsDTO endpoints = (EndpointsDTO) o;
-    return Objects.equals(this.endpoints, endpoints.endpoints);
+    ApplicationListDTO applicationList = (ApplicationListDTO) o;
+    return Objects.equals(this.count, applicationList.count) &&
+        Objects.equals(this.list, applicationList.list);
   }
 
   @Override
   public int hashCode() {
-    return Objects.hash(endpoints);
+    return Objects.hash(count, list);
   }
 
 
   @Override
   public String toString() {
     StringBuilder sb = new StringBuilder();
-    sb.append("class EndpointsDTO {\n");
+    sb.append("class ApplicationListDTO {\n");
     
-    sb.append("    endpoints: ").append(toIndentedString(endpoints)).append("\n");
+    sb.append("    count: ").append(toIndentedString(count)).append("\n");
+    sb.append("    list: ").append(toIndentedString(list)).append("\n");
     sb.append("}");
     return sb.toString();
   }

@@ -19,6 +19,8 @@ package org.wso2.am.integration.test.impl;
 import com.google.gson.Gson;
 import org.apache.commons.codec.binary.Base64;
 import org.apache.commons.lang.StringUtils;
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
 import org.apache.http.HttpStatus;
 import org.testng.Assert;
 import org.wso2.am.integration.clients.store.api.ApiClient;
@@ -29,6 +31,7 @@ import org.wso2.am.integration.clients.store.api.v1.ApiKeysApi;
 import org.wso2.am.integration.clients.store.api.v1.ApplicationKeysApi;
 import org.wso2.am.integration.clients.store.api.v1.ApplicationsApi;
 import org.wso2.am.integration.clients.store.api.v1.CommentsApi;
+import org.wso2.am.integration.clients.store.api.v1.GraphQlPoliciesApi;
 import org.wso2.am.integration.clients.store.api.v1.KeyManagersCollectionApi;
 import org.wso2.am.integration.clients.store.api.v1.RatingsApi;
 import org.wso2.am.integration.clients.store.api.v1.SdKsApi;
@@ -36,9 +39,9 @@ import org.wso2.am.integration.clients.store.api.v1.SubscriptionsApi;
 import org.wso2.am.integration.clients.store.api.v1.TagsApi;
 import org.wso2.am.integration.clients.store.api.v1.TopicsApi;
 import org.wso2.am.integration.clients.store.api.v1.UnifiedSearchApi;
+import org.wso2.am.integration.clients.store.api.v1.UsersApi;
 import org.wso2.am.integration.clients.store.api.v1.WebhooksApi;
 import org.wso2.am.integration.clients.store.api.v1.dto.APIDTO;
-import org.wso2.am.integration.clients.store.api.v1.GraphQlPoliciesApi;
 import org.wso2.am.integration.clients.store.api.v1.dto.APIInfoDTO;
 import org.wso2.am.integration.clients.store.api.v1.dto.APIKeyDTO;
 import org.wso2.am.integration.clients.store.api.v1.dto.APIKeyGenerateRequestDTO;
@@ -52,18 +55,18 @@ import org.wso2.am.integration.clients.store.api.v1.dto.ApplicationKeyMappingReq
 import org.wso2.am.integration.clients.store.api.v1.dto.ApplicationKeyReGenerateResponseDTO;
 import org.wso2.am.integration.clients.store.api.v1.dto.ApplicationListDTO;
 import org.wso2.am.integration.clients.store.api.v1.dto.CommentDTO;
+import org.wso2.am.integration.clients.store.api.v1.dto.CommentListDTO;
+import org.wso2.am.integration.clients.store.api.v1.dto.CurrentAndNewPasswordsDTO;
 import org.wso2.am.integration.clients.store.api.v1.dto.GraphQLQueryComplexityInfoDTO;
+import org.wso2.am.integration.clients.store.api.v1.dto.GraphQLSchemaTypeListDTO;
 import org.wso2.am.integration.clients.store.api.v1.dto.KeyManagerListDTO;
+import org.wso2.am.integration.clients.store.api.v1.dto.PatchRequestBodyDTO;
+import org.wso2.am.integration.clients.store.api.v1.dto.PostRequestBodyDTO;
 import org.wso2.am.integration.clients.store.api.v1.dto.RatingDTO;
 import org.wso2.am.integration.clients.store.api.v1.dto.SearchResultListDTO;
 import org.wso2.am.integration.clients.store.api.v1.dto.SubscriptionDTO;
 import org.wso2.am.integration.clients.store.api.v1.dto.SubscriptionListDTO;
 import org.wso2.am.integration.clients.store.api.v1.dto.TagListDTO;
-import org.wso2.am.integration.clients.store.api.v1.dto.GraphQLSchemaTypeListDTO;
-import org.wso2.am.integration.clients.store.api.v1.dto.CurrentAndNewPasswordsDTO;
-import org.wso2.am.integration.clients.store.api.v1.dto.PostRequestBodyDTO;
-import org.wso2.am.integration.clients.store.api.v1.dto.CommentListDTO;
-import org.wso2.am.integration.clients.store.api.v1.dto.PatchRequestBodyDTO;
 import org.wso2.am.integration.clients.store.api.v1.dto.TopicListDTO;
 import org.wso2.am.integration.clients.store.api.v1.dto.WebhookSubscriptionListDTO;
 import org.wso2.am.integration.test.ClientAuthenticator;
@@ -79,14 +82,13 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-
 import javax.xml.xpath.XPathExpressionException;
-import org.wso2.am.integration.clients.store.api.v1.UsersApi;
 
 /**
  * This util class performs the actions related to APIDTOobjects.
  */
 public class RestAPIStoreImpl {
+    private static final Log log = LogFactory.getLog(RestAPIStoreImpl.class);
     public ApIsApi apIsApi = new ApIsApi();
     public ApplicationsApi applicationsApi = new ApplicationsApi();
     public SubscriptionsApi subscriptionIndividualApi = new SubscriptionsApi();
@@ -112,7 +114,7 @@ public class RestAPIStoreImpl {
     public static final String password = "admin";
     public String storeURL;
     public String tenantDomain;
-
+    private RestAPIGatewayImpl restAPIGateway;
     private String accessToken;
 
     @Deprecated
@@ -154,6 +156,7 @@ public class RestAPIStoreImpl {
         apiStoreClient.setDebugging(true);
         this.storeURL = storeURL;
         this.tenantDomain = tenantDomain;
+        this.restAPIGateway = new RestAPIGatewayImpl(this.username, this.password, tenantDomain);
     }
 
 
@@ -274,7 +277,7 @@ public class RestAPIStoreImpl {
         return null;
     }
 
-    public HttpResponse createSubscription(String apiId, String applicationId, String subscriptionTier) {
+    public HttpResponse createSubscription(String apiId, String applicationId, String subscriptionTier) throws APIManagerIntegrationTestException {
         try {
             SubscriptionDTO subscription = new SubscriptionDTO();
             subscription.setApplicationId(applicationId);
@@ -285,6 +288,7 @@ public class RestAPIStoreImpl {
 
             HttpResponse response = null;
             if (StringUtils.isNotEmpty(subscriptionResponse.getSubscriptionId())) {
+                waitUntilSubscriptionAvailableInGateway(subscriptionResponse);
                 response = new HttpResponse(subscriptionResponse.getSubscriptionId(), 200);
             }
             return response;
@@ -1518,7 +1522,7 @@ public class RestAPIStoreImpl {
         return null;
     }
 
-    public SubscriptionDTO subscribeToAPI(String apiID, String appID, String tier) throws ApiException {
+    public SubscriptionDTO subscribeToAPI(String apiID, String appID, String tier) throws ApiException, APIManagerIntegrationTestException {
         SubscriptionDTO subscription = new SubscriptionDTO();
         subscription.setApplicationId(appID);
         subscription.setApiId(apiID);
@@ -1526,9 +1530,37 @@ public class RestAPIStoreImpl {
         ApiResponse<SubscriptionDTO> subscriptionResponse =
                 subscriptionIndividualApi.subscriptionsPostWithHttpInfo(subscription, this.tenantDomain);
         Assert.assertEquals(HttpStatus.SC_CREATED, subscriptionResponse.getStatusCode());
+        waitUntilSubscriptionAvailableInGateway(subscriptionResponse.getData());
         return subscriptionResponse.getData();
     }
 
+    private void waitUntilSubscriptionAvailableInGateway(SubscriptionDTO subscribedDto) throws APIManagerIntegrationTestException {
+
+        org.wso2.am.integration.clients.gateway.api.v2.dto.SubscriptionDTO subscriptionDTO =
+                restAPIGateway.retrieveSubscription(subscribedDto.getApiId(), subscribedDto.getApplicationId());
+        if (subscriptionDTO != null) {
+            log.info("Subscription Available in in memory == " + subscriptionDTO.toString());
+
+            if (subscribedDto.getStatus().getValue().equals(subscriptionDTO.getSubscriptionState())) {
+                return;
+            }
+        }
+        long currentTime = System.currentTimeMillis();
+        long waitTime = currentTime + 6000;
+        while (waitTime > System.currentTimeMillis()) {
+            try {
+                Thread.sleep(500);
+            } catch (InterruptedException ignored) {
+            }
+            subscriptionDTO = restAPIGateway.retrieveSubscription(subscribedDto.getApiId(), subscribedDto.getApplicationId());
+            if (subscriptionDTO != null) {
+                log.info("Subscription Available in in memory== " + subscriptionDTO.toString());
+                if (subscribedDto.getStatus().getValue().equals(subscriptionDTO.getSubscriptionState())) {
+                    break;
+                }
+            }
+        }
+    }
 //    /**
 //     * Retrieve the API store page as anonymous user.
 //     *
