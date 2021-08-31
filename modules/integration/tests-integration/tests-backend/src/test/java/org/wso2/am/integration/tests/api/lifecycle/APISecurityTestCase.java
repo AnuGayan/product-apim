@@ -335,9 +335,8 @@ public class APISecurityTestCase extends APIManagerLifecycleBaseTest {
                 API_END_POINT_METHOD, keyDTOApiResponse4.getData().getApikey());
         Assert.assertEquals(httpResponse5.getResponseCode(), 200);
         restAPIPublisher.changeAPILifeCycleStatus(apiId4, APILifeCycleAction.PUBLISH.getAction());
-        HttpResponse applicationResponse = restAPIStore.createApplication(APPLICATION_NAME,
-                "Test Application", APIMIntegrationConstants.APPLICATION_TIER.UNLIMITED,
-                ApplicationDTO.TokenTypeEnum.JWT);
+        HttpResponse applicationResponse = restAPIStore.createApplication(APPLICATION_NAME, "Test Application",
+                APIMIntegrationConstants.APPLICATION_TIER.UNLIMITED, ApplicationDTO.TokenTypeEnum.JWT);
 
         applicationId = applicationResponse.getData();
         restAPIStore.subscribeToAPI(apiId3, applicationId, APIMIntegrationConstants.APPLICATION_TIER.UNLIMITED);

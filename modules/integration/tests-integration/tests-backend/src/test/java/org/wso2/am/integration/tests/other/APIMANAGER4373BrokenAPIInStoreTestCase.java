@@ -164,7 +164,7 @@ public class APIMANAGER4373BrokenAPIInStoreTestCase extends APIManagerLifecycleB
 
         SubscriptionListDTO subsDTO = apiStoreSubUser.getAllSubscriptionsOfApplication(appId);
         for (SubscriptionDTO subscriptionDTO : subsDTO.getList()) {
-            apiStoreSubUser.removeSubscription(subscriptionDTO.getSubscriptionId());
+            apiStoreSubUser.removeSubscription(subscriptionDTO);
         }
 
         apiStoreSubUser.deleteApplication(appId);

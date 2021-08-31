@@ -125,7 +125,7 @@ public class APIRevisionTestCase extends APIMIntegrationBaseTest {
         apiRevisionDeployRequest.setDisplayOnDevportal(true);
         apiRevisionDeployRequestList.add(apiRevisionDeployRequest);
         HttpResponse apiRevisionsDeployResponse = restAPIPublisher.deployAPIRevision(apiId, revisionUUID,
-                apiRevisionDeployRequestList);
+                apiRevisionDeployRequestList,"API");
         assertEquals(apiRevisionsDeployResponse.getResponseCode(), HTTP_RESPONSE_CODE_CREATED,
                 "Unable to deploy API Revisions:" +apiRevisionsDeployResponse.getData());
 //        List<JSONObject> deploymentList = new ArrayList<>();
