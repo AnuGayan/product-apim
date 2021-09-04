@@ -273,8 +273,8 @@
                                                value="<%= Encode.forHtmlAttribute(lastNameValue)%>" disabled <% } %>>
 
                                     </div>
-                                </div>
                                 <%}%>
+                                </div>
                                 <div class="field">
                                     <input id="username" name="username" type="hidden"
                                            value="<%=Encode.forHtmlAttribute(username)%>"
