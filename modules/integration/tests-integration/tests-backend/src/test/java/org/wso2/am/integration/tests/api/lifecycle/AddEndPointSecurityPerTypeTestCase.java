@@ -18,6 +18,7 @@
 
 package org.wso2.am.integration.tests.api.lifecycle;
 
+import org.apache.commons.io.IOUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.apache.http.HttpEntity;
@@ -41,6 +42,7 @@ import org.wso2.am.integration.clients.store.api.v1.dto.ApplicationDTO;
 import org.wso2.am.integration.clients.store.api.v1.dto.ApplicationKeyDTO;
 import org.wso2.am.integration.clients.store.api.v1.dto.ApplicationKeyGenerateRequestDTO;
 import org.wso2.am.integration.test.ClientAuthenticator;
+import org.wso2.am.integration.test.Constants;
 import org.wso2.am.integration.test.utils.base.APIMIntegrationConstants;
 import org.wso2.am.integration.test.utils.bean.APICreationRequestBean;
 import org.wso2.am.integration.test.utils.bean.ApplicationKeyBean;
@@ -53,9 +55,11 @@ import org.wso2.carbon.automation.engine.context.beans.User;
 import org.wso2.carbon.automation.test.utils.http.client.HttpResponse;
 import waffle.util.Base64;
 
+import java.io.BufferedWriter;
+import java.io.File;
+import java.io.FileWriter;
 import java.io.IOException;
 import java.io.InputStreamReader;
-import java.io.UnsupportedEncodingException;
 import java.net.URI;
 import java.net.URL;
 import java.util.ArrayList;
@@ -84,6 +88,7 @@ public class AddEndPointSecurityPerTypeTestCase extends APIManagerLifecycleBaseT
     private ApplicationKeyDTO sandboxApplication;
     private APIIdentifier apiIdentifier;
     private String dcrURL;
+    private String clientCredGrantTypeEndpointSecurityForProductionAndSandbox;
     ArrayList<String> apiIds = new ArrayList<>();
 
     @Factory(dataProvider = "userModeDataProvider")
@@ -132,6 +137,26 @@ public class AddEndPointSecurityPerTypeTestCase extends APIManagerLifecycleBaseT
                 "password client_credentials", dcrURL, user.getUserName(), user.getPassword(), null);
         applicationKeyBeanProduction = ClientAuthenticator.makeDCRRequest(oauthAppProduction);
         applicationKeyBeanSandbox = ClientAuthenticator.makeDCRRequest(oauthAppSandbox);
+        clientCredGrantTypeEndpointSecurityForProductionAndSandbox = "{\n" +
+                "  \"production\":{\n" +
+                "    \"enabled\":true,\n" +
+                "    \"type\":\"OAUTH\",\n" +
+                "    \"tokenUrl\":\"https://localhost:9943/oauth2/token\",\n" +
+                "    \"clientId\":\"" + applicationKeyBeanProduction.getConsumerKey() + "\",\n" +
+                "    \"clientSecret\":\"" + applicationKeyBeanProduction.getConsumerSecret() + "\",\n" +
+                "    \"customParameters\":{},\n" +
+                "    \"grantType\":\"CLIENT_CREDENTIALS\"\n" +
+                "  },\n" +
+                "  \"sandbox\":{\n" +
+                "    \"enabled\":true,\n" +
+                "    \"type\":\"OAUTH\",\n" +
+                "    \"tokenUrl\":\"https://localhost:9943/oauth2/token\",\n" +
+                "    \"clientId\":\"" + applicationKeyBeanSandbox.getConsumerKey() + "\",\n" +
+                "    \"clientSecret\":\"" + applicationKeyBeanSandbox.getConsumerSecret() + "\",\n" +
+                "    \"customParameters\":{},\n" +
+                "    \"grantType\":\"CLIENT_CREDENTIALS\"\n" +
+                "  }\n" +
+                "  }";
     }
 
     @Test(groups = {"wso2.am"}, description = "Add Endpoint Security for production")
@@ -343,7 +368,7 @@ public class AddEndPointSecurityPerTypeTestCase extends APIManagerLifecycleBaseT
     @Test(groups = {
             "wso2.am"}, description = "Test Add OAuth Endpoint Security", dependsOnMethods =
             "testAddEndpointSecurityForSandboxAndProduction")
-    public void testUpdateEndpointSecurityForOauth() throws Exception {
+    public void testAddEndpointSecurityForOauth() throws Exception {
 
         // Create an API
         String apiName = API_NAME + "4";
@@ -357,28 +382,9 @@ public class AddEndPointSecurityPerTypeTestCase extends APIManagerLifecycleBaseT
         apiCreationRequestBean.setSetEndpointSecurityDirectlyToEndpoint(Boolean.TRUE);
         apiIdentifier = new APIIdentifier(providerName, apiName, API_VERSION_1_0_0);
         apiIdentifier.setTier(TIER_UNLIMITED);
-        String endpointSecurity = "{\n" +
-                "  \"production\":{\n" +
-                "    \"enabled\":true,\n" +
-                "    \"type\":\"OAUTH\",\n" +
-                "    \"tokenUrl\":\"https://localhost:9943/oauth2/token\",\n" +
-                "    \"clientId\":\"" + applicationKeyBeanProduction.getConsumerKey() + "\",\n" +
-                "    \"clientSecret\":\"" + applicationKeyBeanProduction.getConsumerSecret() + "\",\n" +
-                "    \"customParameters\":{},\n" +
-                "    \"grantType\":\"CLIENT_CREDENTIALS\"\n" +
-                "  },\n" +
-                "  \"sandbox\":{\n" +
-                "    \"enabled\":true,\n" +
-                "    \"type\":\"OAUTH\",\n" +
-                "    \"tokenUrl\":\"https://localhost:9943/oauth2/token\",\n" +
-                "    \"clientId\":\"" + applicationKeyBeanSandbox.getConsumerKey() + "\",\n" +
-                "    \"clientSecret\":\"" + applicationKeyBeanSandbox.getConsumerSecret() + "\",\n" +
-                "    \"customParameters\":{},\n" +
-                "    \"grantType\":\"CLIENT_CREDENTIALS\"\n" +
-                "  }\n" +
-                "  }";
         org.json.JSONObject endpointConfig = apiCreationRequestBean.getEndpoint();
-        endpointConfig.put("endpoint_security", new JSONParser().parse(endpointSecurity));
+        endpointConfig.put("endpoint_security",
+                new JSONParser().parse(clientCredGrantTypeEndpointSecurityForProductionAndSandbox));
         apiCreationRequestBean.setEndpoint(endpointConfig);
         APIDTO apidto =
                 createPublishAndSubscribeToAPI(apiIdentifier, apiCreationRequestBean, restAPIPublisher, restAPIStore,
@@ -436,17 +442,6 @@ public class AddEndPointSecurityPerTypeTestCase extends APIManagerLifecycleBaseT
         validateIntrospectionResponse(user, backendToken, applicationKeyBeanSandbox.getConsumerKey());
     }
 
-    @AfterClass(alwaysRun = true)
-    public void cleanUpArtifacts() throws Exception {
-
-        restAPIStore.removeApplicationById(applicationID);
-        for (String apiId: apiIds) {
-            undeployAndDeleteAPIRevisionsUsingRest(apiId, restAPIPublisher);
-            restAPIPublisher.deleteAPI(apiId);
-        }
-        super.cleanUp();
-    }
-
     private void validateIntrospectionResponse(User user, String accessToken, String clientId) throws Exception {
 
         String introspectionUrl = "https://localhost:9943/oauth2/introspect";
@@ -473,4 +468,15 @@ public class AddEndPointSecurityPerTypeTestCase extends APIManagerLifecycleBaseT
             throw new Exception(e);
         }
     }
+    @AfterClass(alwaysRun = true)
+    public void cleanUpArtifacts() throws Exception {
+
+        restAPIStore.removeApplicationById(applicationID);
+        for (String apiId: apiIds) {
+            undeployAndDeleteAPIRevisionsUsingRest(apiId, restAPIPublisher);
+            restAPIPublisher.deleteAPI(apiId);
+        }
+        super.cleanUp();
+    }
+
 }
