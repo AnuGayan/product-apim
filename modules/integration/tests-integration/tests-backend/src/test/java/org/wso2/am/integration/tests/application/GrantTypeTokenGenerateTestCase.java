@@ -408,7 +408,6 @@ public class GrantTypeTokenGenerateTestCase extends APIManagerLifecycleBaseTest 
     public void restoreConfiguration() throws Exception {
 
         //Remove application consent page related config
-        serverConfigurationManager = new ServerConfigurationManager(superTenantKeyManagerContext);
         serverConfigurationManager.restoreToLastConfiguration();
     }
 
