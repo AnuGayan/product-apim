@@ -21,6 +21,7 @@ import org.wso2.am.integration.clients.gateway.api.ApiClient;
 import org.wso2.am.integration.clients.gateway.api.ApiException;
 import org.wso2.am.integration.clients.gateway.api.ApiResponse;
 import org.wso2.am.integration.clients.gateway.api.v2.DefaultApi;
+import org.wso2.am.integration.clients.gateway.api.v2.DeployApiApi;
 import org.wso2.am.integration.clients.gateway.api.v2.GetApiArtifactsApi;
 import org.wso2.am.integration.clients.gateway.api.v2.GetApiInfoApi;
 import org.wso2.am.integration.clients.gateway.api.v2.GetApplicationInfoApi;
