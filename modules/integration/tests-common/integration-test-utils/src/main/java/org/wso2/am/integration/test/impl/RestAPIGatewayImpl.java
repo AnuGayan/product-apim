@@ -19,7 +19,8 @@ package org.wso2.am.integration.test.impl;
 
 import org.wso2.am.integration.clients.gateway.api.ApiClient;
 import org.wso2.am.integration.clients.gateway.api.ApiException;
-import org.wso2.am.integration.clients.gateway.api.v2.DeployApiApi;
+import org.wso2.am.integration.clients.gateway.api.ApiResponse;
+import org.wso2.am.integration.clients.gateway.api.v2.DefaultApi;
 import org.wso2.am.integration.clients.gateway.api.v2.GetApiArtifactsApi;
 import org.wso2.am.integration.clients.gateway.api.v2.GetApiInfoApi;
 import org.wso2.am.integration.clients.gateway.api.v2.GetApplicationInfoApi;
@@ -43,6 +44,7 @@ public class RestAPIGatewayImpl {
     GetApiInfoApi apiInfoApi = new GetApiInfoApi();
     GetApplicationInfoApi applicationInfoApi = new GetApplicationInfoApi();
     GetSubscriptionInfoApi subscriptionInfoApi = new GetSubscriptionInfoApi();
+    DefaultApi defaultApi = new DefaultApi();
     public RestAPIGatewayImpl(String username, String password, String tenantDomain) {
         ApiClient apiClient = new ApiClient();
         String basicEncoded =
@@ -59,6 +61,7 @@ public class RestAPIGatewayImpl {
         apiInfoApi.setApiClient(apiClient);
         applicationInfoApi.setApiClient(apiClient);
         subscriptionInfoApi.setApiClient(apiClient);
+        defaultApi.setApiClient(apiClient);
         this.tenantDomain = tenantDomain;
     }
 
@@ -89,5 +92,9 @@ public class RestAPIGatewayImpl {
                 throw new APIManagerIntegrationTestException(e);
             }
         }
+    }
+
+    public ApiResponse<Void> serverStartUpHealthCheck() throws ApiException {
+        return defaultApi.serverStartupHealthcheckGetWithHttpInfo();
     }
 }
