@@ -148,6 +148,7 @@
     <%
         if (reCaptchaEnabled || reCaptchaResendEnabled) {
             reCaptchaAPI = CaptchaUtil.reCaptchaAPIURL();
+            reCaptchaKey = CaptchaUtil.reCaptchaSiteKey();
     %>
         <script src='<%=(Encode.forJavaScriptSource(reCaptchaAPI))%>'></script>
     <%
