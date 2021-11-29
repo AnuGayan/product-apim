@@ -1,5 +1,6 @@
 package org.wso2.am.integration.tests.restapi;
 
+import org.apache.http.HttpStatus;
 import org.testng.Assert;
 import org.testng.annotations.*;
 import org.wso2.am.integration.clients.gateway.api.v2.dto.APIArtifactDTO;
@@ -139,6 +140,15 @@ public class GatewayRestAPITestCase extends APIMIntegrationBaseTest {
                 Assert.assertTrue(sequence.contains("Correlation_Id"));
             }
         }
+    }
+
+    @Test(groups = {"wso2.am"}, description = "Server Startup Health Check")
+    public void testServerStartUpHealthCheck() throws Exception {
+        RestAPIGatewayImpl restAPIGateway = new RestAPIGatewayImpl(user.getUserName(), user.getPassword(),
+                user.getUserDomain());
+        org.wso2.am.integration.clients.gateway.api.ApiResponse<Void> httpInfo = restAPIGateway
+                .serverStartUpHealthCheck();
+        Assert.assertEquals(httpInfo.getStatusCode(), HttpStatus.SC_OK);
     }
 
     @AfterClass(alwaysRun = true)
