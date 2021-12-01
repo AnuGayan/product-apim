@@ -64,6 +64,8 @@ public class ApplicationTestCase extends APIManagerLifecycleBaseTest {
     private String apiName = "SubscriptionAPITest";
     private String apiContext = "subscriptionapicontext";
     private String applicationId;
+    private String keyMappingApplicationId;
+    private String KeyMappingId;
     private String apiId;
     private ArrayList<String> grantTypes;
     private ApplicationDTO applicationDTO;
@@ -215,6 +217,36 @@ public class ApplicationTestCase extends APIManagerLifecycleBaseTest {
         HttpResponse removeAppResponse = restAPIStore.deleteApplication(applicationId);
         assertEquals(removeAppResponse.getResponseCode(), HTTP_RESPONSE_CODE_OK,
                 "Response code mismatched when deleting an application");
+    }
+
+    @Test(groups = {"webapp"}, description = "Fetch Oauth key details by key mapping ID")
+    public void testFetchKeyDetailsByKeyMappingID() throws Exception {
+        HttpResponse applicationResponse = restAPIStore.createApplication("KeyMappingTestApp",
+                "Test Application", tier, ApplicationDTO.TokenTypeEnum.OAUTH);
+        assertEquals(applicationResponse.getResponseCode(), HttpStatus.SC_OK, "Error while adding test application");
+
+        keyMappingApplicationId = applicationResponse.getData();
+        ApplicationKeyDTO applicationKeyDTO = restAPIStore
+                .generateKeys(keyMappingApplicationId, "3600", null, ApplicationKeyGenerateRequestDTO.KeyTypeEnum.PRODUCTION,
+                        null, grantTypes);
+        Assert.assertNotNull(applicationKeyDTO);
+        keyMappingId = applicationKeyDTO.getKeyMappingId();
+
+        ApplicationKeyDTO responseKeyDTO = restAPIStore
+                .getApplicationKeyByKeyMappingId(keyMappingApplicationId, keyMappingId);
+        Assert.assertNotNull(responseKeyDTO);
+        Assert.assertNotNull(responseKeyDTO.getConsumerKey(), "Consumer secret is not populated in REST API response");
+        Assert.assertEquals(responseKeyDTO.getConsumerKey(), applicationKeyDTO.getConsumerKey(),
+                "Incorrect consumer key returned");
+    }
+
+    @Test(groups = {"webapp" }, description = "Regenerate secret by key mapping ID",
+            dependsOnMethods = "testFetchKeyDetailsByKeyMappingID")
+    public void testRegenerateSecretForKeyMappingId() throws Exception {
+        ApplicationKeyReGenerateResponseDTO reGenerateResponseDTO = restAPIStore
+                .regenerateSecretByKeyMappingId(keyMappingApplicationId, keyMappingId);
+        Assert.assertNotNull(reGenerateResponseDTO);
+        Assert.assertNotNull(reGenerateResponseDTO.getConsumerSecret(), "Secret is not populated");
     }
 
     @AfterClass(alwaysRun = true)
