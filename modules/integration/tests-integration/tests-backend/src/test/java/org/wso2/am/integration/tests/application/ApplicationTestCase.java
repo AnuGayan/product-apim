@@ -32,6 +32,7 @@ import org.wso2.am.integration.clients.publisher.api.v1.dto.APIOperationsDTO;
 import org.wso2.am.integration.clients.store.api.v1.dto.ApplicationDTO;
 import org.wso2.am.integration.clients.store.api.v1.dto.ApplicationKeyDTO;
 import org.wso2.am.integration.clients.store.api.v1.dto.ApplicationKeyGenerateRequestDTO;
+import org.wso2.am.integration.clients.store.api.v1.dto.ApplicationKeyReGenerateResponseDTO;
 import org.wso2.am.integration.clients.store.api.v1.dto.SubscriptionDTO;
 import org.wso2.am.integration.clients.store.api.v1.dto.SubscriptionListDTO;
 import org.wso2.am.integration.test.utils.base.APIMIntegrationConstants;
@@ -45,7 +46,8 @@ import java.net.URL;
 import java.util.ArrayList;
 import java.util.List;
 
-import static org.testng.Assert.*;
+import static org.testng.Assert.assertNotNull;
+import static org.testng.Assert.assertEquals;
 import static org.testng.Assert.assertTrue;
 
 public class ApplicationTestCase extends APIManagerLifecycleBaseTest {
@@ -65,7 +67,7 @@ public class ApplicationTestCase extends APIManagerLifecycleBaseTest {
     private String apiContext = "subscriptionapicontext";
     private String applicationId;
     private String keyMappingApplicationId;
-    private String KeyMappingId;
+    private String keyMappingId;
     private String apiId;
     private ArrayList<String> grantTypes;
     private ApplicationDTO applicationDTO;
@@ -229,14 +231,14 @@ public class ApplicationTestCase extends APIManagerLifecycleBaseTest {
         ApplicationKeyDTO applicationKeyDTO = restAPIStore
                 .generateKeys(keyMappingApplicationId, "3600", null, ApplicationKeyGenerateRequestDTO.KeyTypeEnum.PRODUCTION,
                         null, grantTypes);
-        Assert.assertNotNull(applicationKeyDTO);
+        assertNotNull(applicationKeyDTO);
         keyMappingId = applicationKeyDTO.getKeyMappingId();
 
         ApplicationKeyDTO responseKeyDTO = restAPIStore
                 .getApplicationKeyByKeyMappingId(keyMappingApplicationId, keyMappingId);
-        Assert.assertNotNull(responseKeyDTO);
-        Assert.assertNotNull(responseKeyDTO.getConsumerKey(), "Consumer secret is not populated in REST API response");
-        Assert.assertEquals(responseKeyDTO.getConsumerKey(), applicationKeyDTO.getConsumerKey(),
+        assertNotNull(responseKeyDTO);
+        assertNotNull(responseKeyDTO.getConsumerKey(), "Consumer secret is not populated in REST API response");
+        assertEquals(responseKeyDTO.getConsumerKey(), applicationKeyDTO.getConsumerKey(),
                 "Incorrect consumer key returned");
     }
 
@@ -245,8 +247,8 @@ public class ApplicationTestCase extends APIManagerLifecycleBaseTest {
     public void testRegenerateSecretForKeyMappingId() throws Exception {
         ApplicationKeyReGenerateResponseDTO reGenerateResponseDTO = restAPIStore
                 .regenerateSecretByKeyMappingId(keyMappingApplicationId, keyMappingId);
-        Assert.assertNotNull(reGenerateResponseDTO);
-        Assert.assertNotNull(reGenerateResponseDTO.getConsumerSecret(), "Secret is not populated");
+        assertNotNull(reGenerateResponseDTO);
+        assertNotNull(reGenerateResponseDTO.getConsumerSecret(), "Secret is not populated");
     }
 
     @AfterClass(alwaysRun = true)
