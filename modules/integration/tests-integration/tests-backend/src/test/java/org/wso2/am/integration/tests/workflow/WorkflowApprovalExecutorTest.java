@@ -88,6 +88,7 @@ public class WorkflowApprovalExecutorTest extends APIManagerLifecycleBaseTest {
     private APIPublisherRestClient apiPublisher;
     private APIStoreRestClient apiStore;
     private RestAPIStoreImpl APIStoreClient;
+    private String callbackUrl = "https://localhost:9943/services/Version";
 
     @Factory(dataProvider = "userModeDataProvider")
     public WorkflowApprovalExecutorTest(TestUserMode userMode) {
@@ -369,8 +370,9 @@ public class WorkflowApprovalExecutorTest extends APIManagerLifecycleBaseTest {
         //generate keys
         ArrayList grantTypes = new ArrayList();
         grantTypes.add(APIMIntegrationConstants.GRANT_TYPE.CLIENT_CREDENTIAL);
+        grantTypes.add(APIMIntegrationConstants.GRANT_TYPE.AUTHORIZATION_CODE);
         ApplicationKeyDTO applicationKeyDTO = restAPIStore.generateKeys(applicationID,
-                APIMIntegrationConstants.DEFAULT_TOKEN_VALIDITY_TIME, "",
+                APIMIntegrationConstants.DEFAULT_TOKEN_VALIDITY_TIME, callbackUrl,
                 ApplicationKeyGenerateRequestDTO.KeyTypeEnum.PRODUCTION, null, grantTypes);
         //application key generation state should not change
         String keyState = applicationKeyDTO.getKeyState();
