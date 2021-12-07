@@ -32,6 +32,7 @@ import org.wso2.am.integration.clients.publisher.api.v1.dto.APIOperationsDTO;
 import org.wso2.am.integration.clients.store.api.v1.dto.ApplicationDTO;
 import org.wso2.am.integration.clients.store.api.v1.dto.ApplicationKeyDTO;
 import org.wso2.am.integration.clients.store.api.v1.dto.ApplicationKeyGenerateRequestDTO;
+import org.wso2.am.integration.clients.store.api.v1.dto.ApplicationKeyReGenerateResponseDTO;
 import org.wso2.am.integration.clients.store.api.v1.dto.SubscriptionDTO;
 import org.wso2.am.integration.clients.store.api.v1.dto.SubscriptionListDTO;
 import org.wso2.am.integration.test.utils.base.APIMIntegrationConstants;
@@ -45,7 +46,8 @@ import java.net.URL;
 import java.util.ArrayList;
 import java.util.List;
 
-import static org.testng.Assert.*;
+import static org.testng.Assert.assertNotNull;
+import static org.testng.Assert.assertEquals;
 import static org.testng.Assert.assertTrue;
 
 public class ApplicationTestCase extends APIManagerLifecycleBaseTest {
@@ -64,6 +66,8 @@ public class ApplicationTestCase extends APIManagerLifecycleBaseTest {
     private String apiName = "SubscriptionAPITest";
     private String apiContext = "subscriptionapicontext";
     private String applicationId;
+    private String keyMappingApplicationId;
+    private String keyMappingId;
     private String apiId;
     private ArrayList<String> grantTypes;
     private ApplicationDTO applicationDTO;
@@ -215,6 +219,36 @@ public class ApplicationTestCase extends APIManagerLifecycleBaseTest {
         HttpResponse removeAppResponse = restAPIStore.deleteApplication(applicationId);
         assertEquals(removeAppResponse.getResponseCode(), HTTP_RESPONSE_CODE_OK,
                 "Response code mismatched when deleting an application");
+    }
+
+    @Test(groups = {"webapp"}, description = "Fetch Oauth key details by key mapping ID")
+    public void testFetchKeyDetailsByKeyMappingID() throws Exception {
+        HttpResponse applicationResponse = restAPIStore.createApplication("KeyMappingTestApp",
+                "Test Application", tier, ApplicationDTO.TokenTypeEnum.OAUTH);
+        assertEquals(applicationResponse.getResponseCode(), HttpStatus.SC_OK, "Error while adding test application");
+
+        keyMappingApplicationId = applicationResponse.getData();
+        ApplicationKeyDTO applicationKeyDTO = restAPIStore
+                .generateKeys(keyMappingApplicationId, "3600", null, ApplicationKeyGenerateRequestDTO.KeyTypeEnum.PRODUCTION,
+                        null, grantTypes);
+        assertNotNull(applicationKeyDTO);
+        keyMappingId = applicationKeyDTO.getKeyMappingId();
+
+        ApplicationKeyDTO responseKeyDTO = restAPIStore
+                .getApplicationKeyByKeyMappingId(keyMappingApplicationId, keyMappingId);
+        assertNotNull(responseKeyDTO);
+        assertNotNull(responseKeyDTO.getConsumerKey(), "Consumer secret is not populated in REST API response");
+        assertEquals(responseKeyDTO.getConsumerKey(), applicationKeyDTO.getConsumerKey(),
+                "Incorrect consumer key returned");
+    }
+
+    @Test(groups = {"webapp" }, description = "Regenerate secret by key mapping ID",
+            dependsOnMethods = "testFetchKeyDetailsByKeyMappingID")
+    public void testRegenerateSecretForKeyMappingId() throws Exception {
+        ApplicationKeyReGenerateResponseDTO reGenerateResponseDTO = restAPIStore
+                .regenerateSecretByKeyMappingId(keyMappingApplicationId, keyMappingId);
+        assertNotNull(reGenerateResponseDTO);
+        assertNotNull(reGenerateResponseDTO.getConsumerSecret(), "Secret is not populated");
     }
 
     @AfterClass(alwaysRun = true)
