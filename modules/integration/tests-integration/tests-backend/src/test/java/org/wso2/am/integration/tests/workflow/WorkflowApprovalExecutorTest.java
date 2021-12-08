@@ -94,6 +94,7 @@ public class WorkflowApprovalExecutorTest extends APIManagerLifecycleBaseTest {
     private RestAPIStoreImpl APIStoreClient;
     private String apiName = "WorkflowTestAPI";
     private String applicationName = "AppCreationWorkflowTestAPP";
+    private String callbackUrl = "https://localhost:9943/services/Version";
 
     @Factory(dataProvider = "userModeDataProvider")
     public WorkflowApprovalExecutorTest(TestUserMode userMode) {
@@ -263,7 +264,7 @@ public class WorkflowApprovalExecutorTest extends APIManagerLifecycleBaseTest {
             }
         }
         assertNotNull("Workflow reference is not available ", externalWorkflowRef);
-        
+
         //get workflow pending requests by external workflow reference by Admin
         response = restAPIAdmin.getWorkflowByExternalWorkflowReference(externalWorkflowRef);
         assertEquals(response.getResponseCode(), 200,
@@ -295,7 +296,7 @@ public class WorkflowApprovalExecutorTest extends APIManagerLifecycleBaseTest {
                 "Application state should change after  approval. ");
     }
 
-    @Test(groups = {"wso2.am"}, description = "Subscription workflow process check", dependsOnMethods = 
+    @Test(groups = {"wso2.am"}, description = "Subscription workflow process check", dependsOnMethods =
         {"testApplicationWorkflowProcess", "testAPIWorkflowProcess" })
     public void testSubscriptionWorkflowProcess() throws Exception {
 
@@ -393,8 +394,9 @@ public class WorkflowApprovalExecutorTest extends APIManagerLifecycleBaseTest {
         //generate keys
         ArrayList grantTypes = new ArrayList();
         grantTypes.add(APIMIntegrationConstants.GRANT_TYPE.CLIENT_CREDENTIAL);
+        grantTypes.add(APIMIntegrationConstants.GRANT_TYPE.AUTHORIZATION_CODE);
         ApplicationKeyDTO applicationKeyDTO = restAPIStore.generateKeys(applicationID,
-                APIMIntegrationConstants.DEFAULT_TOKEN_VALIDITY_TIME, "",
+                APIMIntegrationConstants.DEFAULT_TOKEN_VALIDITY_TIME, callbackUrl,
                 ApplicationKeyGenerateRequestDTO.KeyTypeEnum.PRODUCTION, null, grantTypes);
         //application key generation state should not change
         String keyState = applicationKeyDTO.getKeyState();
