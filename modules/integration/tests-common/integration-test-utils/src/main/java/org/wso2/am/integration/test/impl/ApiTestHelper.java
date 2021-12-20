@@ -253,6 +253,9 @@ public class ApiTestHelper {
         Assert.assertEquals(subscriptionDTO.getStatus(), SubscriptionDTO.StatusEnum.UNBLOCKED);
         Assert.assertEquals(subscriptionDTO.getThrottlingPolicy(), subscriptionPolicy);
 
+        SubscriptionDTO createdSubscription = restAPIStore.getSubscriptionById(subscriptionDTO.getSubscriptionId());
+        Assert.assertNotNull(createdSubscription);
+
         return restAPIStore.getApplicationById(applicationDTO.getApplicationId());
     }
 
