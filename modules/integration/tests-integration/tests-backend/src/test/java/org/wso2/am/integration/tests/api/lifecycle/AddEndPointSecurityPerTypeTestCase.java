@@ -146,7 +146,7 @@ public class AddEndPointSecurityPerTypeTestCase extends APIManagerLifecycleBaseT
                 "    \"tokenUrl\":\"https://localhost:9943/oauth2/token\",\n" +
                 "    \"clientId\":\"" + applicationKeyBeanProduction.getConsumerKey() + "\",\n" +
                 "    \"clientSecret\":\"" + applicationKeyBeanProduction.getConsumerSecret() + "\",\n" +
-                "    \"customParameters\":{},\n" +
+                "    \"customParameters\":\"{}\",\n" +
                 "    \"grantType\":\"CLIENT_CREDENTIALS\"\n" +
                 "  },\n" +
                 "  \"sandbox\":{\n" +
@@ -155,7 +155,7 @@ public class AddEndPointSecurityPerTypeTestCase extends APIManagerLifecycleBaseT
                 "    \"tokenUrl\":\"https://localhost:9943/oauth2/token\",\n" +
                 "    \"clientId\":\"" + applicationKeyBeanSandbox.getConsumerKey() + "\",\n" +
                 "    \"clientSecret\":\"" + applicationKeyBeanSandbox.getConsumerSecret() + "\",\n" +
-                "    \"customParameters\":{},\n" +
+                "    \"customParameters\":\"{}\",\n" +
                 "    \"grantType\":\"CLIENT_CREDENTIALS\"\n" +
                 "  }\n" +
                 "  }";
