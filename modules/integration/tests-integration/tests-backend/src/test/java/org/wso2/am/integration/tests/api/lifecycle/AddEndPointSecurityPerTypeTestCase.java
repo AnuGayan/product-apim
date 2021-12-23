@@ -224,6 +224,53 @@ public class AddEndPointSecurityPerTypeTestCase extends APIManagerLifecycleBaseT
         Assert.assertEquals(headers.get("BACKEND_AUTHORIZATION_HEADER"), "");
     }
 
+    @Test(groups = {"wso2.am"}, description = "API definition import with endpoint security",
+            dependsOnMethods = "testAddEndpointSecurityForOauth")
+    public void testAPIDefinitionImportWithEndpointSecurity() throws Exception {
+        String resourcePath = "oas" + File.separator + "v3" + File.separator;
+        String originalDefinition = IOUtils.toString(
+                getClass().getClassLoader().getResourceAsStream(resourcePath + "oas_import.json"),
+                "UTF-8");
+        String additionalProperties = IOUtils.toString(
+                getClass().getClassLoader().getResourceAsStream(resourcePath + "additionalProperties.json"),
+                "UTF-8");
+
+        org.json.JSONObject additionalPropertiesObj = new org.json.JSONObject(additionalProperties);
+        additionalPropertiesObj.put("provider", user.getUserName());
+
+        org.json.JSONObject endpointConfig = (org.json.JSONObject) additionalPropertiesObj.get("endpointConfig");
+        endpointConfig.put("endpoint_security",
+                new JSONParser().parse(clientCredGrantTypeEndpointSecurityForProductionAndSandbox));
+        additionalPropertiesObj.put("endpointConfig", endpointConfig);
+
+        File file = geTempFileWithContent(originalDefinition);
+        APIDTO apidto = restAPIPublisher.importOASDefinition(file, additionalPropertiesObj.toString());
+        apiIds.add(apidto.getId());
+
+        restAPIPublisher.changeAPILifeCycleStatus(apidto.getId(), Constants.PUBLISHED);
+
+        Map addedEndpointConfig = (Map) apidto.getEndpointConfig();
+        Assert.assertNotNull(addedEndpointConfig.get("endpoint_security"));
+        Map endpointSecurityModel = (Map) addedEndpointConfig.get("endpoint_security");
+        Assert.assertNotNull(endpointSecurityModel.get("sandbox"));
+        Map sandboxEndpointSecurityModel = (Map) endpointSecurityModel.get("sandbox");
+        Assert.assertTrue((Boolean) sandboxEndpointSecurityModel.get("enabled"));
+        Assert.assertEquals(sandboxEndpointSecurityModel.get("type"), "OAUTH");
+        Assert.assertEquals(sandboxEndpointSecurityModel.get("tokenUrl"), "https://localhost:9943/oauth2/token");
+        Assert.assertEquals(sandboxEndpointSecurityModel.get("clientId"), applicationKeyBeanSandbox.getConsumerKey());
+        Assert.assertEquals(sandboxEndpointSecurityModel.get("clientSecret"),
+                applicationKeyBeanSandbox.getConsumerSecret());
+        Assert.assertNotNull(endpointSecurityModel.get("production"));
+        Map productionEndpointSecurityModel = (Map) endpointSecurityModel.get("production");
+        Assert.assertTrue((Boolean) productionEndpointSecurityModel.get("enabled"));
+        Assert.assertEquals(productionEndpointSecurityModel.get("type"), "OAUTH");
+        Assert.assertEquals(productionEndpointSecurityModel.get("tokenUrl"), "https://localhost:9943/oauth2/token");
+        Assert.assertEquals(productionEndpointSecurityModel.get("clientId"),
+                applicationKeyBeanProduction.getConsumerKey());
+        Assert.assertEquals(productionEndpointSecurityModel.get("clientSecret"),
+                applicationKeyBeanProduction.getConsumerSecret());
+    }
+
     @Test(groups = {
             "wso2.am"}, description = "Add Endpoint Security for Sandbox", dependsOnMethods =
             "testAddEndpointSecurityForProduction")
@@ -479,6 +526,15 @@ public class AddEndPointSecurityPerTypeTestCase extends APIManagerLifecycleBaseT
             restAPIPublisher.deleteAPI(apiId);
         }
         super.cleanUp();
+    }
+
+    private File geTempFileWithContent(String swagger) throws Exception {
+        File temp = File.createTempFile("swagger", ".json");
+        temp.deleteOnExit();
+        BufferedWriter out = new BufferedWriter(new FileWriter(temp));
+        out.write(swagger);
+        out.close();
+        return temp;
     }
 
 }
