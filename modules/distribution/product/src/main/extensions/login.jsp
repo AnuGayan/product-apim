@@ -20,7 +20,6 @@
 <%@ page import="com.google.gson.Gson" %>
 <%@ page import="org.wso2.carbon.identity.application.authentication.endpoint.util.AuthContextAPIClient" %>
 <%@ page import="org.wso2.carbon.identity.application.authentication.endpoint.util.Constants" %>
-<%@ page import="org.wso2.carbon.identity.captcha.util.CaptchaUtil" %>
 <%@ page import="org.wso2.carbon.identity.core.util.IdentityCoreConstants" %>
 <%@ page import="org.wso2.carbon.identity.core.util.IdentityUtil" %>
 <%@ page import="static org.wso2.carbon.identity.application.authentication.endpoint.util.Constants.STATUS" %>
@@ -46,8 +45,6 @@
     private static final String OPEN_ID_AUTHENTICATOR = "OpenIDAuthenticator";
     private static final String JWT_BASIC_AUTHENTICATOR = "JWTBasicAuthenticator";
     private static final String X509_CERTIFICATE_AUTHENTICATOR = "x509CertificateAuthenticator";
-    private String reCaptchaAPI = null;
-    private String reCaptchaKey = null;
 %>
 
 <%
@@ -147,10 +144,8 @@
 
     <%
         if (reCaptchaEnabled || reCaptchaResendEnabled) {
-            reCaptchaAPI = CaptchaUtil.reCaptchaAPIURL();
-            reCaptchaKey = CaptchaUtil.reCaptchaSiteKey();
     %>
-        <script src='<%=(Encode.forJavaScriptSource(reCaptchaAPI))%>'></script>
+        <script src='<%=(Encode.forJavaScriptSource(request.getParameter("reCaptchaAPI")))%>'></script>
     <%
         }
     %>
