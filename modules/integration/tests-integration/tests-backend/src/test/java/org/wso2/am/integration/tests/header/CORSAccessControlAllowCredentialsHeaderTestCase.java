@@ -31,6 +31,7 @@ import org.testng.annotations.Factory;
 import org.testng.annotations.Test;
 import org.wso2.am.integration.clients.publisher.api.ApiException;
 import org.wso2.am.integration.clients.publisher.api.v1.dto.APIOperationsDTO;
+import org.wso2.am.integration.clients.store.api.ApiResponse;
 import org.wso2.am.integration.clients.store.api.v1.dto.ApplicationDTO;
 import org.wso2.am.integration.clients.store.api.v1.dto.ApplicationKeyDTO;
 import org.wso2.am.integration.clients.store.api.v1.dto.ApplicationKeyGenerateRequestDTO;
@@ -45,6 +46,7 @@ import org.wso2.carbon.automation.engine.context.TestUserMode;
 import org.wso2.carbon.automation.engine.context.beans.User;
 import org.wso2.carbon.automation.test.utils.http.client.HttpResponse;
 
+import javax.ws.rs.core.Response;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.util.ArrayList;
@@ -52,8 +54,7 @@ import java.util.List;
 
 import javax.xml.xpath.XPathExpressionException;
 
-import static org.testng.Assert.assertNotNull;
-import static org.testng.Assert.assertTrue;
+import static org.testng.Assert.*;
 
 /**
  * Test CORS Access-Control-Allow-Credentials functionality
@@ -114,6 +115,21 @@ public class CORSAccessControlAllowCredentialsHeaderTestCase extends APIManagerL
 
         assertNotNull(pickHeader(responseHeaders, ACCESS_CONTROL_ALLOW_CREDENTIALS_HEADER),
                    ACCESS_CONTROL_ALLOW_CREDENTIALS_HEADER + " header is not available in the response.");
+    }
+
+    @Test(groups = {"wso2.am"}, description = "Test generation of all supported SDKs", dependsOnMethods = {
+            "CheckAccessControlAllowCredentialsHeadersWithSpecificOrigin"})
+    public void testAllSupportedSDKGeneration() throws Exception {
+
+        String languages[] = new String[]{
+                "android", "java", "csharp", "dart", "groovy", "javascript", "jmeter", "perl", "php", "python",
+                "ruby", "swift5", "clojure"};
+        for (String language : languages) {
+            ApiResponse<byte[]> sdkGenerationResponse = restAPIStore.generateSDKUpdated(apiId, language,
+                    user.getUserDomain());
+            assertEquals(sdkGenerationResponse.getStatusCode(), Response.Status.OK.getStatusCode(),
+                    "Error when generating SDK for " + language + " language");
+        }
     }
 
     private String createPublishAndSubscribeToApi(User user, String apiName, String apiContext, String apiVersion,
