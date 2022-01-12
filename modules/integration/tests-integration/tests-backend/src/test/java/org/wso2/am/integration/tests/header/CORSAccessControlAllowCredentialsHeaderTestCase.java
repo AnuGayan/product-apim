@@ -132,8 +132,6 @@ public class CORSAccessControlAllowCredentialsHeaderTestCase extends APIManagerL
         }
     }
 
-
-
     private String createPublishAndSubscribeToApi(User user, String apiName, String apiContext, String apiVersion,
                                                   String appName)
             throws APIManagerIntegrationTestException, XPathExpressionException, MalformedURLException, ApiException, org.wso2.am.integration.clients.store.api.ApiException, JSONException {
