@@ -117,21 +117,6 @@ public class CORSAccessControlAllowCredentialsHeaderTestCase extends APIManagerL
                    ACCESS_CONTROL_ALLOW_CREDENTIALS_HEADER + " header is not available in the response.");
     }
 
-    @Test(groups = {"wso2.am"}, description = "Test generation of all supported SDKs", dependsOnMethods = {
-            "CheckAccessControlAllowCredentialsHeadersWithSpecificOrigin"})
-    public void testAllSupportedSDKGeneration() throws Exception {
-
-        String languages[] = new String[]{
-                "android", "java", "csharp", "dart", "groovy", "javascript", "jmeter", "perl", "php", "python",
-                "ruby", "swift5", "clojure"};
-        for (String language : languages) {
-            ApiResponse<byte[]> sdkGenerationResponse = restAPIStore.generateSDKUpdated(apiId, language,
-                    user.getUserDomain());
-            assertEquals(sdkGenerationResponse.getStatusCode(), Response.Status.OK.getStatusCode(),
-                    "Error when generating SDK for " + language + " language");
-        }
-    }
-
     private String createPublishAndSubscribeToApi(User user, String apiName, String apiContext, String apiVersion,
                                                   String appName)
             throws APIManagerIntegrationTestException, XPathExpressionException, MalformedURLException, ApiException, org.wso2.am.integration.clients.store.api.ApiException, JSONException {
