@@ -320,6 +320,13 @@ public class RestAPIStoreImpl {
 
     }
 
+    public SubscriptionDTO getSubscriptionById(String subscriptionId) throws ApiException {
+        ApiResponse<SubscriptionDTO> subscriptionResponse = subscriptionIndividualApi
+                .subscriptionsSubscriptionIdGetWithHttpInfo(subscriptionId, null);
+        Assert.assertEquals(HttpStatus.SC_OK, subscriptionResponse.getStatusCode());
+        return subscriptionResponse.getData();
+    }
+
     public ApplicationKeyDTO generateKeys(String applicationId, String validityTime, String callBackUrl,
                                           ApplicationKeyGenerateRequestDTO.KeyTypeEnum keyTypeEnum, ArrayList<String> scopes,
                                           List<String> grantTypes)
