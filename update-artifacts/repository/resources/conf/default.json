@@ -2101,5 +2101,18 @@
   "apim.ws.subprotocol.handler.class": "org.wso2.carbon.inbound.endpoint.protocol.websocket.subprotocols.EchoSubprotocolHandler",
   "apim.ws.dispatch.custom.sequence": true,
   "apim.ws.outflow.dispatch.fault.sequence": "fault",
-  "apim.ws.client.side.broadcast.level": "0"
+  "apim.ws.client.side.broadcast.level": "0",
+  "apim.proxy_config.enable": false,
+  "apim.proxy_config.host" : "",
+  "apim.proxy_config.username": "",
+  "apim.proxy_config.password": "",
+  "apim.analytics.properties.proxy_config_enable": "$ref{apim.proxy_config.enable}",
+  "apim.analytics.properties.proxy_config_host": "$ref{apim.proxy_config.host}",
+  "apim.analytics.properties.proxy_config_port": "$ref{apim.proxy_config.port}",
+  "apim.analytics.properties.proxy_config_username": "$ref{apim.proxy_config.username}",
+  "apim.analytics.properties.proxy_config_password": "$ref{apim.proxy_config.password}",
+  "apim.analytics.properties.keystore_location": "${carbon.home}/repository/resources/security/$ref{keystore.primary.file_name}",
+  "apim.analytics.properties.keystore_password": "$ref{keystore.primary.password}",
+  "apim.analytics.properties.truststore_location": "${carbon.home}/repository/resources/security/$ref{truststore.file_name}",
+  "apim.analytics.properties.truststore_password": "$ref{truststore.password}"
 }
