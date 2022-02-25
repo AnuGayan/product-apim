@@ -2104,6 +2104,7 @@
   "apim.ws.client.side.broadcast.level": "0",
   "apim.proxy_config.enable": false,
   "apim.proxy_config.host" : "",
+  "apim.proxy_config.port": "",
   "apim.proxy_config.username": "",
   "apim.proxy_config.password": "",
   "apim.analytics.properties.proxy_config_enable": "$ref{apim.proxy_config.enable}",
