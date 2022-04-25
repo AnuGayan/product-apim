@@ -930,7 +930,7 @@ public class APIMIntegrationBaseTest {
         apiRevisionDeployRequest.setDisplayOnDevportal(true);
         apiRevisionDeployRequestList.add(apiRevisionDeployRequest);
         HttpResponse apiRevisionsDeployResponse = restAPIPublisher.deployAPIProductRevision(apiId, revisionUUID,
-                apiRevisionDeployRequestList,"API");
+                apiRevisionDeployRequestList,"APIProduct");
         assertEquals(apiRevisionsDeployResponse.getResponseCode(), HTTP_RESPONSE_CODE_CREATED,
                 "Unable to deploy API Product Revisions:" +apiRevisionsDeployResponse.getData());
         //Waiting for API deployment
