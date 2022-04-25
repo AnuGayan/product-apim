@@ -28,6 +28,9 @@ import org.wso2.am.integration.clients.gateway.api.v2.GetApplicationInfoApi;
 import org.wso2.am.integration.clients.gateway.api.v2.GetSubscriptionInfoApi;
 import org.wso2.am.integration.clients.gateway.api.v2.UndeployApiApi;
 import org.wso2.am.integration.clients.gateway.api.v2.dto.APIArtifactDTO;
+import org.wso2.am.integration.clients.gateway.api.v2.dto.APIInfoDTO;
+import org.wso2.am.integration.clients.gateway.api.v2.dto.ApplicationInfoDTO;
+import org.wso2.am.integration.clients.gateway.api.v2.dto.ApplicationListDTO;
 import org.wso2.am.integration.clients.gateway.api.v2.dto.EndpointsDTO;
 import org.wso2.am.integration.clients.gateway.api.v2.dto.LocalEntryDTO;
 import org.wso2.am.integration.clients.gateway.api.v2.dto.SequencesDTO;
@@ -97,5 +100,37 @@ public class RestAPIGatewayImpl {
 
     public ApiResponse<Void> serverStartUpHealthCheck() throws ApiException {
         return defaultApi.serverStartupHealthcheckGetWithHttpInfo();
+    }
+
+    public ApplicationInfoDTO retrieveApplication(String applicationId) throws APIManagerIntegrationTestException {
+
+        try {
+            ApplicationListDTO applicationListDTO = applicationInfoApi.applicationsGet(null, applicationId,
+                    tenantDomain);
+            if (applicationListDTO != null && applicationListDTO.getList() != null) {
+                for (ApplicationInfoDTO applicationInfoDTO : applicationListDTO.getList()) {
+                    if (applicationInfoDTO.getUuid().equals(applicationId)) {
+                        return applicationInfoDTO;
+                    }
+                }
+            }
+
+        } catch (ApiException e) {
+            throw new APIManagerIntegrationTestException(e);
+        }
+        return null;
+    }
+
+    public APIInfoDTO getAPIInfo(String apiId) throws APIManagerIntegrationTestException {
+
+        try {
+            return apiInfoApi.apisApiIdGet(apiId, tenantDomain);
+        } catch (ApiException e) {
+            if (e.getCode() == 404) {
+                return null;
+            }else{
+                throw new APIManagerIntegrationTestException(e);
+            }
+        }
     }
 }
