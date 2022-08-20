@@ -259,7 +259,8 @@ public class DefaultVersionAPITestCase extends APIManagerLifecycleBaseTest {
         Map<String, String> headers = new HashMap<>();
         headers.put("Authorization", "Bearer " + accessToken);
         // Check Still Default API Invocation works successfully.
-        waitForAPIDeployment();
+        waitForAPIDeploymentSync(storeAPI.getProvider(), storeAPI.getName(), storeAPI.getProvider(),
+                APIMIntegrationConstants.IS_API_EXISTS);
         String defaultVersionAPIInvocationUrl = getAPIInvocationURLHttp(apiContext);
         HttpResponse defaultHttpResponse = invokeWithGet(defaultVersionAPIInvocationUrl, headers);
         Assert.assertEquals(defaultHttpResponse.getHeaders().get("Version"), "v1");
