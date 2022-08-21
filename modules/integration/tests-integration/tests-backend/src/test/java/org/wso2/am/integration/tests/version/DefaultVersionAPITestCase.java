@@ -248,6 +248,7 @@ public class DefaultVersionAPITestCase extends APIManagerLifecycleBaseTest {
                 restAPIPublisher.getAPIByID(apiId);
         oldAPI.setIsDefaultVersion(true);
         restAPIPublisher.updateAPI(oldAPI);
+        waitForAPIDeployment();
         APIDTO storeAPI = restAPIStore.getAPI(apiId);
         List<APIEndpointURLsDTO> endpointURLs = storeAPI.getEndpointURLs();
         Assert.assertNotNull(endpointURLs);
@@ -259,10 +260,9 @@ public class DefaultVersionAPITestCase extends APIManagerLifecycleBaseTest {
         Map<String, String> headers = new HashMap<>();
         headers.put("Authorization", "Bearer " + accessToken);
         // Check Still Default API Invocation works successfully.
-        waitForAPIDeploymentSync(storeAPI.getProvider(), storeAPI.getName(), storeAPI.getProvider(),
-                APIMIntegrationConstants.IS_API_EXISTS);
+        waitForAPIDeployment();
         String defaultVersionAPIInvocationUrl = getAPIInvocationURLHttp(apiContext);
-        HttpResponse defaultHttpResponse = invokeDefaultAPIWithWait(defaultVersionAPIInvocationUrl, headers, 200);
+        HttpResponse defaultHttpResponse = invokeWithGet(defaultVersionAPIInvocationUrl, headers);
         Assert.assertEquals(defaultHttpResponse.getHeaders().get("Version"), "v1");
 
         APIDTO storeAPIAfterUpdate = restAPIStore.getAPI(newAPIVersion);
