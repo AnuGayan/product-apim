@@ -262,7 +262,7 @@ public class DefaultVersionAPITestCase extends APIManagerLifecycleBaseTest {
         waitForAPIDeploymentSync(storeAPI.getProvider(), storeAPI.getName(), storeAPI.getProvider(),
                 APIMIntegrationConstants.IS_API_EXISTS);
         String defaultVersionAPIInvocationUrl = getAPIInvocationURLHttp(apiContext);
-        HttpResponse defaultHttpResponse = invokeWithGet(defaultVersionAPIInvocationUrl, headers);
+        HttpResponse defaultHttpResponse = invokeDefaultAPIWithWait(defaultVersionAPIInvocationUrl, headers, 200);
         Assert.assertEquals(defaultHttpResponse.getHeaders().get("Version"), "v1");
 
         APIDTO storeAPIAfterUpdate = restAPIStore.getAPI(newAPIVersion);
