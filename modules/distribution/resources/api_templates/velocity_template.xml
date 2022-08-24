@@ -239,6 +239,7 @@ $in_sequences.get("$resource.getUriTemplate()").get($uri)
     #end
     #if($resourceName != '')
     <property name="resourceName" value="$resourceName"/>
+    #end
     #if( $resourceTimeout != '' )
     <property name="resourceTimeout" value="$resourceTimeout"/>
     #end
