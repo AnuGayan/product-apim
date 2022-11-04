@@ -19,8 +19,7 @@
         "security" : [ {
           "default" : [ "SwaggerPetstore_imp_v2" ]
         } ],
-        "x-auth-type" : "Application & Application User",
-        "x-throttling-tier" : null
+        "x-auth-type" : "Application & Application User"
       }
     },
     "/pets/{petId}" : {
@@ -39,8 +38,7 @@
         "security" : [ {
           "default" : [ ]
         } ],
-        "x-auth-type" : "Application & Application User",
-        "x-throttling-tier" : null
+        "x-auth-type" : "Application & Application User"
       }
     },
     "/oldpets" : {
@@ -54,8 +52,7 @@
         "security" : [ {
           "default" : [ "SwaggerPetstore_imp_v2" ]
         } ],
-        "x-auth-type" : "Application & Application User",
-        "x-throttling-tier" : null
+        "x-auth-type" : "Application & Application User"
       }
     }
   },

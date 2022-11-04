@@ -20,7 +20,6 @@
           "default" : [ "SwaggerPetstore_v2" ]
         } ],
         "x-auth-type" : "Application & Application User",
-        "x-throttling-tier" : null,
         "x-wso2-application-security": {
           "security-types": ["oauth2"],
           "optional": false
@@ -44,7 +43,6 @@
           "default" : [ ]
         } ],
         "x-auth-type" : "Application & Application User",
-        "x-throttling-tier" : null,
         "x-wso2-application-security": {
           "security-types": ["oauth2"],
           "optional": false
@@ -63,7 +61,6 @@
           "default" : [ "SwaggerPetstore_v2" ]
         } ],
         "x-auth-type" : "Application & Application User",
-        "x-throttling-tier" : null,
         "x-wso2-application-security": {
           "security-types": ["oauth2"],
           "optional": false
