@@ -65,8 +65,10 @@
     if (Boolean.parseBoolean(request.getParameter(Constants.AUTH_FAILURE))) {
         loginFailed = "true";
         String error = request.getParameter(Constants.AUTH_FAILURE_MSG);
-        if (error != null && !error.isEmpty()) {
-            errorMessage = error;
+        // Check the error is not null and whether there is a corresponding value in the resource bundle.
+        if (!(StringUtils.isBlank(error)) &&
+            !error.equalsIgnoreCase(AuthenticationEndpointUtil.i18n(resourceBundle, error))) {
+                errorMessage = error;
         }
     }
 %>
@@ -124,7 +126,7 @@
             + Encode.forUriComponent(relyingParty);
     if (!IdentityTenantUtil.isTenantQualifiedUrlsEnabled()) {
         // We need to send the tenant domain as a query param only in non tenant qualified URL mode.
-        loginContextRequestUrl += "&tenantDomain=" + tenantDomain;
+        loginContextRequestUrl += "&tenantDomain=" + Encode.forUriComponent(tenantDomain);
     }
 %>
 
