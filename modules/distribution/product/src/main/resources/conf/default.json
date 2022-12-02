@@ -741,6 +741,7 @@
   "apim.cache_invalidation.topic_name": "globalCacheInvalidation",
   "apim.auth_manager.check_permissions_remotely": false,
   "apim.auth_manager.iskm_reverseproxy_enabled": false,
+  "apim.swagger.validation_level": "1",
   "apim.sync_runtime_artifacts.gateway.gateway_labels": [
     "Default"
   ],
