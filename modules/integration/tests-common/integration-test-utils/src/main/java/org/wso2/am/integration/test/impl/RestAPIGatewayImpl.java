@@ -116,7 +116,7 @@ public class RestAPIGatewayImpl {
             }
 
         } catch (ApiException e) {
-            throw new APIManagerIntegrationTestException(e);
+            return null;
         }
         return null;
     }
