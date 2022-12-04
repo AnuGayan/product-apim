@@ -1,5 +1,5 @@
 /*
- *Copyright (c) 2022, WSO2 Inc. (http://www.wso2.org) All Rights Reserved.
+ *Copyright (c) 2022, WSO2 LLC. (http://www.wso2.org) All Rights Reserved.
  *
  *WSO2 Inc. licenses this file to you under the Apache License,
  *Version 2.0 (the "License"); you may not use this file except
@@ -36,7 +36,6 @@ import org.wso2.am.integration.test.utils.base.APIMIntegrationBaseTest;
 import org.wso2.am.integration.test.utils.base.APIMIntegrationConstants;
 import org.wso2.am.integration.test.utils.generic.APIMTestCaseUtils;
 import org.wso2.am.integration.test.utils.http.HTTPSClientUtils;
-import org.wso2.am.integration.tests.throttling.JWTBandwidthThrottlingTestCase;
 import org.wso2.carbon.automation.test.utils.http.client.HttpResponse;
 
 import java.util.ArrayList;
@@ -54,7 +53,7 @@ public class JWTBandwidthThrottlingServerRestartTestCase extends APIMIntegration
             + "00000000000000000000000000000000000000000000000000000000000000000000000000000000000000000"
             + "00000000000000000000000000\"}";
 
-    private static final Log log = LogFactory.getLog(JWTBandwidthThrottlingTestCase.class);
+    private static final Log log = LogFactory.getLog(JWTBandwidthThrottlingServerRestartTestCase.class);
 
     @BeforeClass(alwaysRun = true)
     public void setEnvironment(ITestContext ctx) throws Exception {
