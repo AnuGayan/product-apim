@@ -63,7 +63,7 @@ public class APICreationTestCase extends APIManagerLifecycleBaseTest {
     }
 
     @Test(groups = {"wso2.am"}, description = "Test deployment of API with Mutual SSL enabled")
-    public void testCreateAndDeployApiProductWithMutualSSLEnabled() throws Exception {
+    public void testCreateAndDeployApiWithMutualSSLEnabled() throws Exception {
         // Create API and enable Mutual SSL with client certificate
         APIRequest apiRequest;
         apiRequest = new APIRequest(API_NAME, "testapi", new URL(apiEndpointUrl));
