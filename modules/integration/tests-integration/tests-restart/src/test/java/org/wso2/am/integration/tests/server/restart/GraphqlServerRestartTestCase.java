@@ -82,6 +82,9 @@ public class GraphqlServerRestartTestCase extends APIMIntegrationBaseTest {
 
     @Test(groups = {"wso2.am"}, description = "test retrieve schemaDefinition at publisher")
     public void testRetrieveSchemaDefinitionAtPublisher() throws Exception {
+        waitForAPIDeploymentSync(user.getUserName(), "CountriesGraphqlAPI", API_VERSION_1_0_0,
+                APIMIntegrationConstants.IS_API_EXISTS);
+
         GraphQLSchemaDTO schema = restAPIPublisher.getGraphqlSchemaDefinition(graphQLAPIId);
         Assert.assertEquals(schema.getSchemaDefinition(), graphQLSchemaDefinition);
     }

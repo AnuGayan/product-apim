@@ -136,8 +136,15 @@ public class ServerRestartTestCase extends APIManagerLifecycleBaseTest {
         waitForAPIDeploymentSync(user.getUserName(), "APIThrottleAPI", "1.0.0",
                 APIMIntegrationConstants.IS_API_EXISTS);
 
-        ctx.setAttribute("apiThrottleApplicationId", apiThrottleApplicationId);
-        ctx.setAttribute("apiThrottleApiId", apiThrottleApiId);
+        ArrayList grantTypes = new ArrayList();
+        grantTypes.add("client_credentials");
+
+        //get access token
+        ApplicationKeyDTO applicationKeyDTO = restAPIStore.generateKeys(apiThrottleApplicationId, "3600", null, ApplicationKeyGenerateRequestDTO.KeyTypeEnum.PRODUCTION, null, grantTypes);
+        Assert.assertNotNull(applicationKeyDTO.getToken());
+        String apiThrottleAccessToken = applicationKeyDTO.getToken().getAccessToken();
+
+        ctx.setAttribute("apiThrottleAccessToken", apiThrottleAccessToken);
 
         /*
           populate data for Default Version API Test Case

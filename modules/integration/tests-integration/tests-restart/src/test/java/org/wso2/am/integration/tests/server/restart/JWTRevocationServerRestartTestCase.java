@@ -77,6 +77,9 @@ public class JWTRevocationServerRestartTestCase extends APIManagerLifecycleBaseT
     @Test(groups = "wso2.am", description = "testing jwt token revocation")
     public void testJWTTokenRevocation() throws Exception {
 
+        waitForAPIDeploymentSync(user.getUserName(), "JWTTokenTestAPI", API_VERSION_1_0_0,
+                APIMIntegrationConstants.IS_API_EXISTS);
+
         // Test JWT token validity before revocation
         HttpResponse invocationResponse =
                 HttpRequestUtil.doGet(apiInvocationUrl, requestHeaders);
