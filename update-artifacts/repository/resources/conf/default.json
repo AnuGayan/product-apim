@@ -225,6 +225,7 @@
   "http_access_log.directory": "${carbon.home}/repository/logs",
   "http_access_log.prefix": "http_access_",
   "http_access_log.suffix": ".log",
+  "http_access_log.enabled": true,
   "http_access_log.pattern": "%h %l %u %t %r %s %b %{Referer}i %{User-Agent}i %T",
   "server.hide_menu_items": [
     "claim_mgt_menu",
@@ -742,6 +743,7 @@
   "apim.cache_invalidation.topic_name": "globalCacheInvalidation",
   "apim.auth_manager.check_permissions_remotely": false,
   "apim.auth_manager.iskm_reverseproxy_enabled": false,
+  "apim.swagger.validation_level": "1",
   "apim.sync_runtime_artifacts.gateway.gateway_labels": [
     "Default"
   ],
@@ -750,6 +752,7 @@
   "apim.sync_runtime_artifacts.gateway.data_retrieval_mode": "async",
   "apim.sync_runtime_artifacts.gateway.event_waiting_time": "5000",
   "apim.sync_runtime_artifacts.gateway.enable": true,
+  "apim.sync_runtime_artifacts.gateway.enable_on_demand_loading": false,
   "transport.thrift.agent.queue_size": "32768",
   "transport.thrift.agent.batch_size": "200",
   "transport.thrift.agent.core_pool_size": "1",
@@ -2125,5 +2128,17 @@
   "apim.analytics.properties.keystore_location": "${carbon.home}/repository/resources/security/$ref{keystore.primary.file_name}",
   "apim.analytics.properties.keystore_password": "$ref{keystore.primary.password}",
   "apim.analytics.properties.truststore_location": "${carbon.home}/repository/resources/security/$ref{truststore.file_name}",
-  "apim.analytics.properties.truststore_password": "$ref{truststore.password}"
+  "apim.analytics.properties.truststore_password": "$ref{truststore.password}",
+  "transport.binary.receiver.ciphers" : [
+    "TLS_ECDHE_ECDSA_WITH_AES_128_CBC_SHA256",
+    "TLS_ECDHE_RSA_WITH_AES_128_CBC_SHA256",
+    "TLS_DHE_RSA_WITH_AES_128_CBC_SHA256",
+    "TLS_ECDHE_ECDSA_WITH_AES_128_CBC_SHA",
+    "TLS_ECDHE_RSA_WITH_AES_128_CBC_SHA",
+    "TLS_DHE_RSA_WITH_AES_128_CBC_SHA",
+    "TLS_ECDHE_ECDSA_WITH_AES_128_GCM_SHA256",
+    "TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256",
+    "TLS_DHE_RSA_WITH_AES_128_GCM_SHA256"
+  ],
+  "password.default_validity_period":"24"
 }
