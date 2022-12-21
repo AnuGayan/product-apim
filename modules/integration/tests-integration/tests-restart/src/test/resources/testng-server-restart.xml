@@ -11,8 +11,10 @@
             <class name="org.wso2.am.integration.tests.server.restart.JWTRevocationServerRestartTestCase"/>
             <class name="org.wso2.am.integration.tests.server.restart.APIRevisionServerRestartTestCase"/>
             <class name="org.wso2.am.integration.tests.server.restart.AccessibilityOfBlockAPIServerRestartTestCase"/>
-            <class name="org.wso2.am.integration.tests.server.restart.JWTBandwidthThrottlingServerRestartTestCase"/>
-            <class name="org.wso2.am.integration.tests.server.restart.GraphqlServerRestartTestCase"/>
+<!--            Following two test cases should be uncommented after resolving the following GitHub issue -->
+<!--            https://github.com/wso2-enterprise/wso2-apim-internal/issues/1424 -->
+<!--            <class name="org.wso2.am.integration.tests.server.restart.JWTBandwidthThrottlingServerRestartTestCase"/> -->
+<!--            <class name="org.wso2.am.integration.tests.server.restart.GraphqlServerRestartTestCase"/> -->
             <class name="org.wso2.am.integration.tests.server.restart.CustomThrottlingPolicyServerRestartTestCase"/>
         </classes>
     </test>
