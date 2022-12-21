@@ -826,6 +826,9 @@
         <disableRestart>{{server.disable_restart_from_ui | default('false')}}</disableRestart>
      </disableShutdownRestartFromUI>
 
+     <!-- Configure password validity period for initially set password -->
+    <DefaultPasswordValidityPeriod>{{password.default_validity_period}}</DefaultPasswordValidityPeriod>
+
     {% if tenant_mgt.disable_email_domain_validation is defined %}
      <DisableEmailUserNameValidation>{{tenant_mgt.disable_email_domain_validation}}</DisableEmailUserNameValidation>
     {% endif %}
