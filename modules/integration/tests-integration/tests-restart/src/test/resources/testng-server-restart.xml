@@ -7,8 +7,8 @@
         <classes>
             <class name="org.wso2.am.integration.tests.server.restart.ServerRestartTestCase"/>
             <class name="org.wso2.am.integration.tests.server.restart.APIThrottlingServerRestartTestCase"/>
-            <class name="org.wso2.am.integration.tests.server.restart.DefaultVersionAPIServerRestartTestCase"/>
             <class name="org.wso2.am.integration.tests.server.restart.JWTRevocationServerRestartTestCase"/>
+            <class name="org.wso2.am.integration.tests.server.restart.DefaultVersionAPIServerRestartTestCase"/>
             <class name="org.wso2.am.integration.tests.server.restart.APIRevisionServerRestartTestCase"/>
             <class name="org.wso2.am.integration.tests.server.restart.AccessibilityOfBlockAPIServerRestartTestCase"/>
 <!--            Following two test cases should be uncommented after resolving the following GitHub issue -->
