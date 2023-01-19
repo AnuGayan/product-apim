@@ -55,19 +55,8 @@ public class BlockConditionTestCase extends APIManagerLifecycleBaseTest {
     private static final String JOHN_APP = "johnApp";
     protected static final String TIER_UNLIMITED = "Unlimited";
     private String appIdOfJohnApp, appIdOfSmithApp;
-    private final String API_NAME = "CopyAPIWithOutReSubscriptionTest";
     private final String API_CONTEXT = "CopyAPIWithOutReSubscription";
-    private final String API_TAGS = "testTag1, testTag2, testTag3";
-    private final String API_DESCRIPTION = "This is test API create by API manager integration test";
-    private final String API_END_POINT_METHOD = "/customers/123";
-    private final String API_RESPONSE_DATA = "<id>123</id><name>John</name></Customer>";
     private final String API_VERSION_1_0_0 = "1.0.0";
-    private final String API_END_POINT_POSTFIX_URL = "jaxrs_basic/services/customers/customerservice/";
-    private String apiEndPointUrl;
-    private String providerName;
-    private String apiId;
-    private String apiId2;
-    private APIRequest apiRequest;
     private String subscriptionId1, subscriptionId2;
     public static final String BLOCKED = "BLOCKED";
     public static final String PROD_ONLY_BLOCKED = "PROD_ONLY_BLOCKED";
@@ -108,22 +97,26 @@ public class BlockConditionTestCase extends APIManagerLifecycleBaseTest {
 
         // create api for super tenant
         ArrayList<String> grantTypes = new ArrayList<>();
-        apiEndPointUrl = backEndServerUrl.getWebAppURLHttp() + API_END_POINT_POSTFIX_URL;
-        providerName = user.getUserName();
+        String API_END_POINT_POSTFIX_URL = "jaxrs_basic/services/customers/customerservice/";
+        String apiEndPointUrl = backEndServerUrl.getWebAppURLHttp() + API_END_POINT_POSTFIX_URL;
+        String providerName = user.getUserName();
 
-        apiRequest = new APIRequest(API_NAME, API_CONTEXT, new URL(apiEndPointUrl));
+        String API_NAME = "CopyAPIWithOutReSubscriptionTest";
+        APIRequest apiRequest = new APIRequest(API_NAME, API_CONTEXT, new URL(apiEndPointUrl));
         apiRequest.setVersion(API_VERSION_1_0_0);
         apiRequest.setTiersCollection(APIMIntegrationConstants.API_TIER.UNLIMITED);
         apiRequest.setTier(APIMIntegrationConstants.API_TIER.UNLIMITED);
         apiRequest.setProvider(providerName);
+        String API_TAGS = "testTag1, testTag2, testTag3";
         apiRequest.setTags(API_TAGS);
+        String API_DESCRIPTION = "This is test API create by API manager integration test";
         apiRequest.setDescription(API_DESCRIPTION);
 
-        apiId = createAndPublishAPIUsingRest(apiRequest, restAPIPublisher, false);
+        String apiId = createAndPublishAPIUsingRest(apiRequest, restAPIPublisher, false);
         //create api for tenant
         restAPIPublisherTenant = new RestAPIPublisherImpl(TENANT_USER1, TENANT_USER1_PWD, TENANT_DOMAIN,
                 publisherURLHttps);
-        apiId2 = createAndPublishAPIUsingRest(apiRequest, restAPIPublisherTenant, false);
+        String apiId2 = createAndPublishAPIUsingRest(apiRequest, restAPIPublisherTenant, false);
 
         //subscribe API for super tenant
         subscriptionId1 = restAPIStore.subscribeToAPI(apiId, appIdOfJohnApp, TIER_UNLIMITED).getSubscriptionId();
@@ -147,6 +140,7 @@ public class BlockConditionTestCase extends APIManagerLifecycleBaseTest {
         requestHeaders.put("accept", "text/xml");
         requestHeaders.put("Authorization", "Bearer " + accessTokenSuperTenantProduction);
 
+        String API_END_POINT_METHOD = "/customers/123";
         HttpResponse serviceResponse =
                 HttpRequestUtil.doGet(getAPIInvocationURLHttp(API_CONTEXT, API_VERSION_1_0_0) +
                         API_END_POINT_METHOD, requestHeaders);
@@ -163,6 +157,7 @@ public class BlockConditionTestCase extends APIManagerLifecycleBaseTest {
                 HttpRequestUtil.doGet(getAPIInvocationURLHttp(API_CONTEXT, API_VERSION_1_0_0) +
                         API_END_POINT_METHOD, requestHeaders2);
         Assert.assertEquals(serviceResponse2.getResponseCode(), HttpStatus.SC_OK);
+        String API_RESPONSE_DATA = "<id>123</id><name>John</name></Customer>";
         Assert.assertEquals(serviceResponse2.getData(), API_RESPONSE_DATA);
 
         // block subscription and test for production only for super tenant
@@ -196,7 +191,7 @@ public class BlockConditionTestCase extends APIManagerLifecycleBaseTest {
         grantTypes.add(APIMIntegrationConstants.GRANT_TYPE.PASSWORD);
         grantTypes.add(APIMIntegrationConstants.GRANT_TYPE.CLIENT_CREDENTIAL);
 
-        ApplicationKeyDTO applicationKeyDTOTenant = restAPIStoreClientTenant.generateKeys(appIdOfJohnApp, "36000",
+        ApplicationKeyDTO applicationKeyDTOTenant = restAPIStoreClientTenant.generateKeys(appIdOfSmithApp, "36000",
                 "", ApplicationKeyGenerateRequestDTO.KeyTypeEnum.PRODUCTION, null, grantTypesTenant);
         String accessTokenTenantProduction = applicationKeyDTOTenant.getToken().getAccessToken();
         Map<String, String> requestHeadersTenantProduction = new HashMap<>();
@@ -210,7 +205,7 @@ public class BlockConditionTestCase extends APIManagerLifecycleBaseTest {
         Assert.assertEquals(serviceResponse7.getData(), API_RESPONSE_DATA);
 
         // generate token for tenant sandbox and invoke
-        ApplicationKeyDTO applicationKeyDTOTenant2 = restAPIStore.generateKeys(appIdOfJohnApp, "36000",
+        ApplicationKeyDTO applicationKeyDTOTenant2 = restAPIStoreClientTenant.generateKeys(appIdOfSmithApp, "36000",
                 "", ApplicationKeyGenerateRequestDTO.KeyTypeEnum.SANDBOX, null, grantTypesTenant);
         String accessTokenTenantSandbox = applicationKeyDTOTenant2.getToken().getAccessToken();
         Map<String, String> requestHeadersTenantSandbox = new HashMap<>();
