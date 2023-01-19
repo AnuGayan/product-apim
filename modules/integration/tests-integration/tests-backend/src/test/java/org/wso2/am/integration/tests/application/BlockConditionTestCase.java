@@ -85,8 +85,9 @@ public class BlockConditionTestCase extends APIManagerLifecycleBaseTest {
 
         // add a tenant domain
         tenantManagementServiceClient.addTenant(TENANT_DOMAIN, TENANT_ADMIN_PWD, TENANT_ADMIN, "demo");
-        UserManagementClient userManagementClient1 = new UserManagementClient(keyManagerContext.getContextUrls().getBackEndUrl(),
-                TENANT_ADMIN_WITH_DOMAIN, TENANT_ADMIN_PWD);
+        UserManagementClient userManagementClient1 =
+                new UserManagementClient(keyManagerContext.getContextUrls().getBackEndUrl(),
+                        TENANT_ADMIN_WITH_DOMAIN, TENANT_ADMIN_PWD);
         // add users within the tenant domain
         userManagementClient1.addUser(TENANT_USER1, TENANT_USER1_PWD, creatorPublisherRole, TENANT_USER1);
         userManagementClient1.addUser(TENANT_USER2, TENANT_USER1_PWD, subscriberRole, TENANT_USER1);
@@ -142,7 +143,7 @@ public class BlockConditionTestCase extends APIManagerLifecycleBaseTest {
         ApplicationKeyDTO applicationKeyDTO = restAPIStoreClient1.generateKeys(appIdOfJohnApp, "36000",
                 "", ApplicationKeyGenerateRequestDTO.KeyTypeEnum.PRODUCTION, null, grantTypes);
         String accessTokenSuperTenantProduction = applicationKeyDTO.getToken().getAccessToken();
-        Map<String, String> requestHeaders = new HashMap<String, String>();
+        Map<String, String> requestHeaders = new HashMap<>();
         requestHeaders.put("accept", "text/xml");
         requestHeaders.put("Authorization", "Bearer " + accessTokenSuperTenantProduction);
 
@@ -152,10 +153,10 @@ public class BlockConditionTestCase extends APIManagerLifecycleBaseTest {
         Assert.assertEquals(serviceResponse.getResponseCode(), HttpStatus.SC_OK);
 
         // generate token for super tenant  sandbox and invoke
-        ApplicationKeyDTO applicationKeyDTO2 = restAPIStoreClient1.getApplicationKeyByKeyMappingId();.generateKeys(appIdOfJohnApp, "36000",
+        ApplicationKeyDTO applicationKeyDTO2 = restAPIStoreClient1.generateKeys(appIdOfJohnApp, "36000",
                 "", ApplicationKeyGenerateRequestDTO.KeyTypeEnum.SANDBOX, null, grantTypes);
         String accessTokenSuperTenantSandbox = applicationKeyDTO2.getToken().getAccessToken();
-        Map<String, String> requestHeaders2 = new HashMap<String, String>();
+        Map<String, String> requestHeaders2 = new HashMap<>();
         requestHeaders2.put("accept", "text/xml");
         requestHeaders2.put("Authorization", "Bearer " + accessTokenSuperTenantSandbox);
         HttpResponse serviceResponse2 =
@@ -212,7 +213,7 @@ public class BlockConditionTestCase extends APIManagerLifecycleBaseTest {
         ApplicationKeyDTO applicationKeyDTOTenant2 = restAPIStore.generateKeys(appIdOfJohnApp, "36000",
                 "", ApplicationKeyGenerateRequestDTO.KeyTypeEnum.SANDBOX, null, grantTypesTenant);
         String accessTokenTenantSandbox = applicationKeyDTOTenant2.getToken().getAccessToken();
-        Map<String, String> requestHeadersTenantSandbox = new HashMap<String, String>();
+        Map<String, String> requestHeadersTenantSandbox = new HashMap<>();
         requestHeaders2.put("accept", "text/xml");
         requestHeaders2.put("Authorization", "Bearer " + accessTokenTenantSandbox);
         HttpResponse serviceResponse8 =
