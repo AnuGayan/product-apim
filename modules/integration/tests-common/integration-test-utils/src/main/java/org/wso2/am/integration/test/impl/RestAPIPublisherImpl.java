@@ -2022,4 +2022,24 @@ public class RestAPIPublisherImpl {
 
         return apiProductsApi.updateAPIProductWithHttpInfo(apiProductDTO.getId(), apiProductDTO, null);
     }
+
+    /**
+     * This method is used to block subscriptions.
+     *
+     *
+     * @param subscriptionId
+     * @param blockState
+     * @return
+     */
+    public HttpResponse blockSubscription(String subscriptionId, String blockState){
+        HttpResponse response;
+        try {
+            subscriptionsApi.blockSubscription(subscriptionId,blockState , null );
+            response = new HttpResponse("Successfully blocked API subscription", 200);
+        } catch (ApiException e) {
+            response = new HttpResponse("Failed to block subscription for subscription ID: " + subscriptionId,
+                    e.getCode());
+        }
+        return response;
+    }
 }
