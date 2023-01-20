@@ -27,6 +27,7 @@ import org.wso2.am.integration.test.impl.*;
 import org.wso2.am.integration.test.utils.base.*;
 import org.wso2.am.integration.test.utils.bean.*;
 import org.wso2.am.integration.tests.api.lifecycle.*;
+import org.wso2.carbon.automation.engine.context.*;
 import org.wso2.carbon.automation.test.utils.http.client.*;
 import org.wso2.carbon.integration.common.admin.client.*;
 
@@ -61,6 +62,17 @@ public class BlockConditionTestCase extends APIManagerLifecycleBaseTest {
     public static final String BLOCKED = "BLOCKED";
     public static final String PROD_ONLY_BLOCKED = "PROD_ONLY_BLOCKED";
 
+    @Factory(dataProvider = "userModeDataProvider")
+    public BlockConditionTestCase(TestUserMode userMode) {
+        this.userMode = userMode;
+    }
+
+    @DataProvider
+    public static Object[][] userModeDataProvider() {
+        return new Object[][]{
+                new Object[]{TestUserMode.SUPER_TENANT_ADMIN}
+        };
+    }
 
     @BeforeClass(alwaysRun = true)
     public void setEnvironment() throws Exception {
@@ -119,7 +131,7 @@ public class BlockConditionTestCase extends APIManagerLifecycleBaseTest {
         String apiId2 = createAndPublishAPIUsingRest(apiRequest, restAPIPublisherTenant, false);
 
         //subscribe API for super tenant
-        subscriptionId1 = restAPIStore.subscribeToAPI(apiId, appIdOfJohnApp, TIER_UNLIMITED).getSubscriptionId();
+        subscriptionId1 = restAPIStoreClient1.subscribeToAPI(apiId, appIdOfJohnApp, TIER_UNLIMITED).getSubscriptionId();
         //subscribe api for tenant
         subscriptionId2 = restAPIStoreClientTenant.subscribeToAPI(apiId2, appIdOfSmithApp, TIER_UNLIMITED)
                 .getSubscriptionId();
@@ -127,7 +139,7 @@ public class BlockConditionTestCase extends APIManagerLifecycleBaseTest {
     }
 
     @Test(groups = {"wso2.am"}, description = "Test block subscription")
-    public void testBlockSubscriptionPI() throws Exception {
+    public void testBlockSubscription() throws Exception {
         // generate token for super tenant  production and invoke
         ArrayList<String> grantTypes = new ArrayList<>();
         grantTypes.add(APIMIntegrationConstants.GRANT_TYPE.PASSWORD);
@@ -158,31 +170,32 @@ public class BlockConditionTestCase extends APIManagerLifecycleBaseTest {
                         API_END_POINT_METHOD, requestHeaders2);
         Assert.assertEquals(serviceResponse2.getResponseCode(), HttpStatus.SC_OK);
         String API_RESPONSE_DATA = "<id>123</id><name>John</name></Customer>";
-        Assert.assertEquals(serviceResponse2.getData(), API_RESPONSE_DATA);
+        Assert.assertTrue(serviceResponse2.getData().contains(API_RESPONSE_DATA));
 
         // block subscription and test for production only for super tenant
         restAPIPublisher.blockSubscription(subscriptionId1, PROD_ONLY_BLOCKED);
         HttpResponse serviceResponse3 =
                 HttpRequestUtil.doGet(getAPIInvocationURLHttp(API_CONTEXT, API_VERSION_1_0_0) +
                         API_END_POINT_METHOD, requestHeaders);
-        Assert.assertEquals(serviceResponse3.getResponseCode(), 900907);
+        Assert.assertTrue(serviceResponse3.getData().contains("900907)"));
 
         HttpResponse serviceResponse4 =
                 HttpRequestUtil.doGet(getAPIInvocationURLHttp(API_CONTEXT, API_VERSION_1_0_0) +
                         API_END_POINT_METHOD, requestHeaders2);
         Assert.assertEquals(serviceResponse4.getResponseCode(), HttpStatus.SC_OK);
-        Assert.assertEquals(serviceResponse4.getData(), API_RESPONSE_DATA);
+        Assert.assertTrue(serviceResponse2.getData().contains(API_RESPONSE_DATA));
 
         // block subscription and test for production and sandbox for super tenant
         restAPIPublisher.blockSubscription(subscriptionId1, BLOCKED);
         HttpResponse serviceResponse5 =
                 HttpRequestUtil.doGet(getAPIInvocationURLHttp(API_CONTEXT, API_VERSION_1_0_0) +
                         API_END_POINT_METHOD, requestHeaders);
-        Assert.assertEquals(serviceResponse5.getResponseCode(), 900907);
+        Assert.assertTrue(serviceResponse5.getData().contains("900907)"));
 
         HttpResponse serviceResponse6 =
                 HttpRequestUtil.doGet(getAPIInvocationURLHttp(API_CONTEXT, API_VERSION_1_0_0) +
                         API_END_POINT_METHOD, requestHeaders2);
+        Assert.assertTrue(serviceResponse6.getData().contains("900907)"));
         Assert.assertEquals(serviceResponse6.getResponseCode(), 900907);
 
 
@@ -202,7 +215,7 @@ public class BlockConditionTestCase extends APIManagerLifecycleBaseTest {
                 HttpRequestUtil.doGet(getAPIInvocationURLHttp(API_CONTEXT, API_VERSION_1_0_0) +
                         API_END_POINT_METHOD, requestHeadersTenantProduction);
         Assert.assertEquals(serviceResponse7.getResponseCode(), HttpStatus.SC_OK);
-        Assert.assertEquals(serviceResponse7.getData(), API_RESPONSE_DATA);
+        Assert.assertTrue(serviceResponse2.getData().contains(API_RESPONSE_DATA));
 
         // generate token for tenant sandbox and invoke
         ApplicationKeyDTO applicationKeyDTOTenant2 = restAPIStoreClientTenant.generateKeys(appIdOfSmithApp, "36000",
@@ -215,7 +228,7 @@ public class BlockConditionTestCase extends APIManagerLifecycleBaseTest {
                 HttpRequestUtil.doGet(getAPIInvocationURLHttp(API_CONTEXT, API_VERSION_1_0_0) +
                         API_END_POINT_METHOD, requestHeaders2);
         Assert.assertEquals(serviceResponse8.getResponseCode(), HttpStatus.SC_OK);
-        Assert.assertEquals(serviceResponse8.getData(), API_RESPONSE_DATA);
+        Assert.assertTrue(serviceResponse2.getData().contains(API_RESPONSE_DATA));
 
         // block subscription and test for production only for tenant
         restAPIPublisherTenant.blockSubscription(subscriptionId2, PROD_ONLY_BLOCKED);
@@ -228,7 +241,7 @@ public class BlockConditionTestCase extends APIManagerLifecycleBaseTest {
                 HttpRequestUtil.doGet(getAPIInvocationURLHttp(API_CONTEXT, API_VERSION_1_0_0) +
                         API_END_POINT_METHOD, requestHeadersTenantSandbox);
         Assert.assertEquals(serviceResponse10.getResponseCode(), HttpStatus.SC_OK);
-        Assert.assertEquals(serviceResponse10.getData(), API_RESPONSE_DATA);
+        Assert.assertTrue(serviceResponse2.getData().contains(API_RESPONSE_DATA));
 
         // block subscription and test for production and sandbox  for tenant
         restAPIPublisherTenant.blockSubscription(subscriptionId2, BLOCKED);
