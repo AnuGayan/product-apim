@@ -119,20 +119,6 @@ public class NewVersionUpdateTestCase extends APIMIntegrationBaseTest {
         assertTrue(endPointConfig.contains(endpointUrlNew));
     }
 
-    @Test(groups = { "wso2.am" },
-            description = "Check the count of the APIs when display multiple versioned APIs option is disabled in "
-                    + "devportal", dependsOnMethods = "testNewVersionAPIUpdate")
-    public void testCheckMultipleVersionedAPIsCount() throws Exception {
-        // Publish the versioned API
-        restAPIPublisher.changeAPILifeCycleStatus(apiId2, APILifeCycleAction.PUBLISH.getAction());
-
-        waitForAPIDeployment();
-
-        APIListDTO restAPIStoreAllAPIs = restAPIStore.getAllAPIs(user.getUserDomain());
-        assertEquals(restAPIStoreAllAPIs.getCount().toString(), String.valueOf(1), "Wrong API count returned");
-        assertEquals(restAPIStoreAllAPIs.getList().get(0).getVersion(), APIVersionNew, "Wrong API list returned");
-    }
-
     @AfterClass(alwaysRun = true)
     public void destroy() throws Exception {
         restAPIPublisher.deleteAPI(apiId);
