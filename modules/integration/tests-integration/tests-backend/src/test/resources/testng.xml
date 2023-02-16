@@ -98,6 +98,7 @@
             <class name="org.wso2.am.integration.tests.api.lifecycle.APIMANAGER5337SubscriptionRetainTestCase"/>
             <class name="org.wso2.am.integration.tests.header.CustomHeaderTestCase"/>
             <!--<class name="org.wso2.am.integration.tests.header.DuplicateHeaderTestCase"/>-->
+            <class name="org.wso2.am.integration.tests.token.TokenResponseWithCustomObjectsTestCase"/>
             <class name="org.wso2.am.integration.tests.token.InvalidTokenTestCase"/>
             <class name="org.wso2.am.integration.tests.throttling.APIThrottlingTestCase"/>
             <class name="org.wso2.am.integration.tests.throttling.JWTBandwidthThrottlingTestCase"/>
