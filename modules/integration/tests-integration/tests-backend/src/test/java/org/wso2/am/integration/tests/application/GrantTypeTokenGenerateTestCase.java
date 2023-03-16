@@ -205,7 +205,6 @@ public class GrantTypeTokenGenerateTestCase extends APIManagerLifecycleBaseTest 
         Assert.assertEquals(tokenResponse.getResponseCode(), HttpStatus.SC_UNAUTHORIZED,
                 "Response code is not as expected");
         JSONObject responseData = new JSONObject(tokenResponse.getData());
-        Assert.assertNotNull(responseData.getString("access_token"), "Access Token is not empty");
         Assert.assertEquals(responseData.getString("error"), "invalid_client", "Error message is not as expected");
         Assert.assertNotNull(tokenResponse.getHeaders().get("WWW-Authenticate"), "WWW-Authenticate header is not found");
     }
