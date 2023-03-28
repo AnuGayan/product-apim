@@ -180,7 +180,8 @@ public class APIRevisionTestCase extends APIMIntegrationBaseTest {
                 "Unable to delete API Revisions:" + apiRevisionsDeleteResponse.getData());
     }
 
-    @Test(groups = {"wso2.am"}, description = "Test traces of the deleted API wont appear in admin console")
+    @Test(groups = {"wso2.am"}, description = "Test traces of the deleted API wont appear in admin console",
+            dependsOnMethods = "testDeleteAPIRevision")
     public void testIfTracesOfDeletedApisVisible() throws Exception {
         API_TRACES_LOCATION = API_TRACES_LOCATION.concat(apiId);
         resourceAdminServiceClient =
