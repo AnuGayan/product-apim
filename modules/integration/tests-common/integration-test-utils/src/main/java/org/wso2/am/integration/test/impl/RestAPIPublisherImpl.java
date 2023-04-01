@@ -289,7 +289,21 @@ public class RestAPIPublisherImpl {
             body.setOperations(operations);
         }
         body.setMediationPolicies(apiRequest.getMediationPolicies());
-        body.setBusinessInformation(new APIBusinessInformationDTO());
+
+        APIBusinessInformationDTO businessInformationDTO = new APIBusinessInformationDTO();
+        if (apiRequest.getBusinessOwner() != null) {
+            businessInformationDTO.setBusinessOwner(apiRequest.getBusinessOwner());
+        }
+        if (apiRequest.getBusinessOwnerEmail() != null) {
+            businessInformationDTO.setBusinessOwnerEmail(apiRequest.getBusinessOwnerEmail());
+        }
+        if (apiRequest.getTechnicalOwner() != null) {
+            businessInformationDTO.setTechnicalOwner(apiRequest.getTechnicalOwner());
+        }
+        if (apiRequest.getTechnicalOwnerEmail() != null) {
+            businessInformationDTO.setTechnicalOwnerEmail(apiRequest.getTechnicalOwnerEmail());
+        }
+        body.setBusinessInformation(businessInformationDTO);
         body.setCorsConfiguration(new APICorsConfigurationDTO());
         body.setTags(Arrays.asList(apiRequest.getTags().split(",")));
         body.setEndpointConfig(apiRequest.getEndpointConfig());
