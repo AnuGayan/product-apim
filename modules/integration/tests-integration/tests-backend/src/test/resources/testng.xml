@@ -229,6 +229,7 @@
             <!--disable test case since it need to configure DAS -->
             <!--<class name="org.wso2.am.integration.tests.stats.APIMANAGER4731StoreStatisticsWhenTokenEncryptedTestCase"/>-->
             <!--<class name="org.wso2.am.integration.tests.other.APIMANAGER5327KeyGenerationWithPGSQLTestCase"/>-->
+            <class name="org.wso2.am.integration.tests.other.DevPortalBusinessInformationViewTestCase"/>
         </classes>
     </test>
 
