@@ -26,6 +26,7 @@ import org.wso2.am.integration.clients.admin.api.AdvancedPolicyIndividualApi;
 import org.wso2.am.integration.clients.admin.api.ApiCategoryIndividualApi;
 import org.wso2.am.integration.clients.admin.api.ApiCategoryCollectionApi;
 import org.wso2.am.integration.clients.admin.api.ApplicationApi;
+import org.wso2.am.integration.clients.admin.api.SystemScopesApi;
 import org.wso2.am.integration.clients.admin.api.ApplicationCollectionApi;
 import org.wso2.am.integration.clients.admin.api.ApplicationPolicyCollectionApi;
 import org.wso2.am.integration.clients.admin.api.ApplicationPolicyIndividualApi;
@@ -63,9 +64,15 @@ import org.wso2.am.integration.clients.admin.api.dto.SubscriptionThrottlePolicyD
 import org.wso2.am.integration.clients.admin.api.dto.WorkflowDTO;
 import org.wso2.am.integration.clients.admin.api.dto.WorkflowInfoDTO;
 import org.wso2.am.integration.clients.admin.api.dto.WorkflowListDTO;
+import org.wso2.am.integration.clients.admin.api.dto.ScopeSettingsDTO;
+import org.wso2.am.integration.clients.admin.api.dto.RoleAliasListDTO;
+import org.wso2.am.integration.clients.admin.api.dto.RoleAliasDTO;
 import org.wso2.am.integration.test.ClientAuthenticator;
 import org.wso2.am.integration.test.Constants;
 import org.wso2.am.integration.test.HttpResponse;
+
+import java.util.Arrays;
+import java.util.Base64;
 
 /**
  * This util class performs the actions related to APIDTOobjects.
@@ -92,6 +99,7 @@ public class RestAPIAdminImpl {
     private AdvancedPolicyCollectionApi advancedPolicyCollectionApi = new AdvancedPolicyCollectionApi();
     private ApplicationCollectionApi applicationCollectionApi = new ApplicationCollectionApi();
     private ApplicationApi applicationApi = new ApplicationApi();
+    private SystemScopesApi systemScopesApi = new SystemScopesApi();
     private LabelApi labelApi = new LabelApi();
     private LabelCollectionApi labelCollectionApi = new LabelCollectionApi();
     private EnvironmentApi environmentApi = new EnvironmentApi();
@@ -165,6 +173,7 @@ public class RestAPIAdminImpl {
         advancedPolicyCollectionApi.setApiClient(apiAdminClient);
         applicationCollectionApi.setApiClient(apiAdminClient);
         applicationApi.setApiClient(apiAdminClient);
+        systemScopesApi.setApiClient(apiAdminClient);
         labelApi.setApiClient(apiAdminClient);
         labelCollectionApi.setApiClient(apiAdminClient);
         environmentApi.setApiClient(apiAdminClient);
@@ -638,6 +647,40 @@ public class RestAPIAdminImpl {
     public ApiResponse<Void> changeApplicationOwner(String newOwner, String applicationId) throws ApiException {
 
         return applicationApi.applicationsApplicationIdChangeOwnerPostWithHttpInfo(newOwner, applicationId);
+    }
+
+    /**
+     * This method is used to retrieve scopes for a particular user.
+     *
+     * @param scopeName Scope name.
+     * @param username  Username of the user.
+     * @return ScopeSettingsDTO returned by API call.
+     * @throws ApiException if an error occurs while retrieving the scopes of a particular user.
+     */
+    public ScopeSettingsDTO retrieveScopesForParticularUser(String scopeName, String username) throws ApiException {
+        return systemScopesApi.systemScopesScopeNameGet(new String(Base64.getEncoder().encode(scopeName.getBytes())), username);
+    }
+
+    /**
+     * This method is used to add a new role alias mapping for system scope roles.
+     *
+     * @param count   The number of role aliases.
+     * @param role    Name of the role.
+     * @param aliases List of aliases.
+     * @return RoleAliasListDTO returned by API call.
+     * @throws ApiException if an error occurs while adding role aliases mappings for system scope roles.
+     */
+    public RoleAliasListDTO addRoleAliasMappingForSystemScopeRoles(int count, String role, String[] aliases) throws ApiException {
+
+        RoleAliasDTO roleAliasDTO = new RoleAliasDTO();
+        roleAliasDTO.setRole(role);
+        roleAliasDTO.setAliases(Arrays.asList(aliases));
+
+        RoleAliasListDTO roleAliasListDTO = new RoleAliasListDTO();
+        roleAliasListDTO.setCount(count);
+        roleAliasListDTO.setList(Arrays.asList(roleAliasDTO));
+
+        return systemScopesApi.systemScopesRoleAliasesPut(roleAliasListDTO);
     }
 
     public HttpResponse getWorkflowByExternalWorkflowReference(String externalWorkflowRef) throws ApiException {
