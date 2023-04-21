@@ -819,6 +819,21 @@
             {% endfor %}
         </AllowedScopes>
         {% endif %}
+        
+        {% if oauth.jwt.renew_token_without_revoking_existing is defined %}
+        <JWT>
+            <RenewTokenWithoutRevokingExisting>
+                <Enable>{{oauth.jwt.renew_token_without_revoking_existing.enable}}</Enable>
+                {% if oauth.jwt.renew_token_without_revoking_existing.allowed_grant_types is defined %}
+                <AllowedGrantTypes>
+                    {% for allowed_grant_type in oauth.jwt.renew_token_without_revoking_existing.allowed_grant_types %}
+                    <AllowedGrantType>{{allowed_grant_type}}</AllowedGrantType>
+                    {% endfor %}
+                </AllowedGrantTypes>
+                {% endif %}
+            </RenewTokenWithoutRevokingExisting>
+        </JWT>
+        {% endif %}
     </OAuth>
 
     <MultifactorAuthentication>
@@ -1272,6 +1287,9 @@
                        orderId="{{event.default_listener.governance_identity_store.priority}}"
                        enable="{{event.default_listener.governance_identity_store.enable}}">
             <Property name="Data.Store">{{event.default_listener.governance_identity_store.data_store}}</Property>
+            <!-- By enabling this, it will use the userstore attribute values for identity claims if the identity data
+            store value is empty for corresponding claim. -->
+            <Property name="EnableHybridDataStore">{{event.default_listener.governance_identity_store.enable_hybrid_data_store}}</Property>
         </EventListener>
         <EventListener id="application_authentication"
                        type="org.wso2.carbon.identity.core.handler.AbstractIdentityMessageHandler"
