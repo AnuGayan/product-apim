@@ -24,6 +24,7 @@ import org.codehaus.plexus.util.StringUtils;
 import org.json.JSONArray;
 import org.json.JSONObject;
 import org.testng.annotations.*;
+import org.wso2.am.admin.clients.registry.ResourceAdminServiceClient;
 import org.wso2.am.integration.test.Constants;
 import org.wso2.am.integration.test.utils.base.APIMIntegrationBaseTest;
 import org.wso2.am.integration.test.utils.base.APIMIntegrationConstants;
@@ -31,12 +32,16 @@ import org.wso2.am.integration.test.utils.bean.APIRequest;
 import org.wso2.am.integration.test.utils.bean.APIRevisionDeployUndeployRequest;
 import org.wso2.am.integration.test.utils.bean.APIRevisionRequest;
 import org.wso2.carbon.automation.test.utils.http.client.HttpResponse;
+import org.wso2.carbon.registry.resource.stub.common.xsd.ResourceData;
 import javax.ws.rs.core.Response;
 import java.net.URL;
 import java.util.ArrayList;
 import java.util.List;
 
-import static org.testng.Assert.*;
+import static org.testng.Assert.assertEquals;
+import static org.testng.Assert.assertNotNull;
+import static org.testng.Assert.assertTrue;
+import static org.testng.Assert.fail;
 
 public class APIRevisionTestCase extends APIMIntegrationBaseTest {
     private final Log log = LogFactory.getLog(APIRevisionTestCase.class);
@@ -53,9 +58,11 @@ public class APIRevisionTestCase extends APIMIntegrationBaseTest {
     private final String API_CONTEXT = "revisiontestapi";
     private final String API_VERSION_1_0_0 = "1.0.0";
     private final String API_END_POINT_POSTFIX_URL = "jaxrs_basic/services/customers/customerservice/";
+    private  String API_TRACES_LOCATION = "/_system/governance/apimgt/applicationdata/apis/";
     private String apiEndPointUrl;
     private String apiId;
     private String revisionUUID;
+    private ResourceAdminServiceClient resourceAdminServiceClient;
 
     @BeforeClass(alwaysRun = true)
     public void setEnvironment() throws Exception {
@@ -173,8 +180,21 @@ public class APIRevisionTestCase extends APIMIntegrationBaseTest {
                 "Unable to delete API Revisions:" + apiRevisionsDeleteResponse.getData());
     }
 
-    @AfterClass(alwaysRun = true)
-    public void destroy() throws Exception {
-
+    @Test(groups = {"wso2.am"}, description = "Test traces of the deleted API wont appear in admin console",
+            dependsOnMethods = "testDeleteAPIRevision")
+    public void testIfTracesOfDeletedApisVisible() throws Exception {
+        API_TRACES_LOCATION = API_TRACES_LOCATION.concat(apiId);
+        resourceAdminServiceClient =
+                new ResourceAdminServiceClient(publisherContext.getContextUrls().getBackEndUrl(),
+                        createSession(publisherContext));
+        ResourceData[] apiResourcesTraces = resourceAdminServiceClient.getResourceData(API_TRACES_LOCATION);
+        assertTrue(apiResourcesTraces[0].getName().equals(apiId));
+        restAPIPublisher.deleteAPI(apiId);
+        try {
+            resourceAdminServiceClient.getResourceData(API_TRACES_LOCATION);
+            fail("The resource should not be accessible");
+        } catch (org.apache.axis2.AxisFault e) {
+            assertTrue(e.getMessage().contains("Resource does not exist at path"));
+        }
     }
 }

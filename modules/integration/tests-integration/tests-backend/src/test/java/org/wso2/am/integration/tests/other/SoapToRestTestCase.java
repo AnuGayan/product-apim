@@ -23,6 +23,8 @@ package org.wso2.am.integration.tests.other;
 import com.github.tomakehurst.wiremock.WireMockServer;
 import com.github.tomakehurst.wiremock.client.WireMock;
 import com.google.gson.Gson;
+import org.apache.axiom.om.OMElement;
+import org.apache.axiom.om.impl.builder.StAXOMBuilder;
 import org.apache.commons.httpclient.HttpStatus;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.logging.Log;
@@ -55,10 +57,7 @@ import org.wso2.carbon.automation.engine.annotations.SetEnvironment;
 import org.wso2.carbon.automation.engine.context.TestUserMode;
 import org.wso2.carbon.automation.test.utils.http.client.HttpResponse;
 
-import java.io.BufferedWriter;
-import java.io.File;
-import java.io.FileWriter;
-import java.io.IOException;
+import java.io.*;
 import java.net.Socket;
 import java.net.URL;
 import java.util.ArrayList;
@@ -66,6 +65,10 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import javax.ws.rs.core.Response;
+import javax.xml.stream.StreamFilter;
+import javax.xml.stream.XMLInputFactory;
+import javax.xml.stream.XMLStreamException;
+import javax.xml.stream.XMLStreamReader;
 
 import static com.github.tomakehurst.wiremock.client.WireMock.aResponse;
 import static com.github.tomakehurst.wiremock.client.WireMock.urlEqualTo;
@@ -99,6 +102,7 @@ public class SoapToRestTestCase extends APIManagerLifecycleBaseTest {
     private String testAppId3;
     private String testAppId4;
     private String testAppId5;
+    private String testAppId6;
     private String payload = "{\n" + "   \"CheckPhoneNumber\":{\n" + "      \"PhoneNumber\":\"18006785432\",\n"
             + "      \"LicenseKey\":\"0\"\n" + "   }\n" + "}";
     private String resourceName = "/checkPhoneNumber";
@@ -201,22 +205,44 @@ public class SoapToRestTestCase extends APIManagerLifecycleBaseTest {
         String inSequence = IOUtils.toString(getClass().getClassLoader().getResourceAsStream(
                 "artifacts" + File.separator + "AM" + File.separator + "soap" + File.separator
                         + "in-sequence-check-phone-numbers.xml"), "UTF-8");
+        String inSequenceOrdered = IOUtils.toString(getClass().getClassLoader().getResourceAsStream(
+                "artifacts" + File.separator + "AM" + File.separator + "soap" + File.separator
+                        + "in-sequence-check-phone-numbers-ordered.xml"), "UTF-8");
+        String inSequenceRandomOrderedElement = removeSpacesInSequence(inSequence);
+        String inSequenceOrderedElement = removeSpacesInSequence(inSequenceOrdered);
         ResourcePolicyListDTO resourcePolicyInListDTO = restAPIPublisher
                 .getApiResourcePolicies(soapToRestAPIId, "in", "checkPhoneNumbers", "post");
         resourcePoliciesIn = resourcePolicyInListDTO.getList();
         resourcePoliciesIn.forEach((item) -> {
-            assertEquals(item.getContent(), inSequence, "Invalid In-Sequence");
+            // Since parameter order is not guaranteed as the used json objects does not preserve the order,
+            // output can be from either of the two sequences.
+            try {
+                String itemElement = removeSpacesInSequence(item.getContent());
+                log.info("Generated In sequence: " + item.getContent());
+                boolean equals = inSequenceRandomOrderedElement.equals(itemElement)
+                        || inSequenceOrderedElement.equals(itemElement);
+                assertEquals(equals, true, "Invalid In-Sequence");
+            } catch (Exception e) {
+                throw new RuntimeException(e);
+            }
         });
 
         // Validate out-sequence
         String outSequence = IOUtils.toString(getClass().getClassLoader().getResourceAsStream(
                 "artifacts" + File.separator + "AM" + File.separator + "soap" + File.separator
                         + "out-sequence-check-phone-numbers.xml"), "UTF-8");
+        String outSequenceElement = removeSpacesInSequence(outSequence);
         ResourcePolicyListDTO resourcePolicyOutListDTO = restAPIPublisher
                 .getApiResourcePolicies(soapToRestAPIId, "out", "checkPhoneNumbers", "post");
         resourcePoliciesOut = resourcePolicyOutListDTO.getList();
         resourcePoliciesOut.forEach((item) -> {
-            assertEquals(item.getContent(), outSequence, "Invalid Out-Sequence");
+            try {
+                String itemElement = removeSpacesInSequence(item.getContent());
+                log.info("Generated out sequence: " + item.getContent());
+                assertEquals(itemElement, outSequenceElement, "Invalid Out-Sequence");
+            } catch (Exception e) {
+                log.error(e.getMessage());
+            }
         });
     }
 
@@ -484,6 +510,11 @@ public class SoapToRestTestCase extends APIManagerLifecycleBaseTest {
         String updatedInSequence = IOUtils.toString(getClass().getClassLoader().getResourceAsStream(
                 "artifacts" + File.separator + "AM" + File.separator + "soap" + File.separator
                         + "updated-in-sequence-check-phone-numbers.xml"), "UTF-8");
+        String updatedInSequenceOrdered = IOUtils.toString(getClass().getClassLoader().getResourceAsStream(
+                "artifacts" + File.separator + "AM" + File.separator + "soap" + File.separator
+                        + "updated-in-sequence-check-phone-numbers-ordered.xml"), "UTF-8");
+        String inSequenceRandomOrderedElement = removeSpacesInSequence(updatedInSequence);
+        String inSequenceOrderedElement = removeSpacesInSequence(updatedInSequenceOrdered);
         resourcePoliciesIn.forEach((item) -> {
             ResourcePolicyInfoDTO updatedResourcePoliciesIn = null;
             item.setContent(updatedInSequence);
@@ -493,24 +524,64 @@ public class SoapToRestTestCase extends APIManagerLifecycleBaseTest {
             } catch (org.wso2.am.integration.clients.publisher.api.ApiException e) {
                 log.error(e.getMessage());
             }
-            assertEquals(updatedResourcePoliciesIn.getContent(), updatedInSequence, "In-Sequence not updated");
+            // Since parameter order is not guaranteed as the used json objects does not preserve the order,
+            // output can be from either of the two sequences.
+            try {
+                String itemElement = removeSpacesInSequence(updatedResourcePoliciesIn.getContent());
+                log.info("Generated updated in sequence: " + updatedResourcePoliciesIn.getContent());
+                boolean equals = inSequenceRandomOrderedElement.equals(itemElement)
+                        || inSequenceOrderedElement.equals(itemElement);
+                assertEquals(equals, true, "In-Sequence not updated");
+            } catch (Exception e) {
+                log.error(e.getMessage());
+            }
         });
 
         // Update out-sequence
         String updatedOutSequence = IOUtils.toString(getClass().getClassLoader().getResourceAsStream(
                 "artifacts" + File.separator + "AM" + File.separator + "soap" + File.separator
                         + "updated-out-sequence-check-phone-numbers.xml"), "UTF-8");
+        String updatedOutSequenceElement = removeSpacesInSequence(updatedOutSequence);
         resourcePoliciesOut.forEach((item) -> {
             item.setContent(updatedOutSequence);
             ResourcePolicyInfoDTO updatedResourcePoliciesOut = null;
             try {
                 updatedResourcePoliciesOut = restAPIPublisher
                         .updateApiResourcePolicies(soapToRestAPIId, item.getId(), item.getResourcePath(), item, null);
-            } catch (org.wso2.am.integration.clients.publisher.api.ApiException e) {
+                log.info("Generated updated out sequence: " + updatedResourcePoliciesOut.getContent());
+                String updatedResourcePoliciesOutElement = removeSpacesInSequence(updatedResourcePoliciesOut.getContent());
+                assertEquals(updatedResourcePoliciesOutElement, updatedOutSequenceElement, "Out-Sequence not updated");
+
+            } catch (Exception e) {
                 log.error(e.getMessage());
             }
-            assertEquals(updatedResourcePoliciesOut.getContent(), updatedOutSequence, "Out-Sequence not updated");
         });
+    }
+
+    // Test if the response is 400 when the content-type of the request is not application/json
+    @Test(groups = {"wso2.am"}, description = "Invocation of a API with invalid content-type", dependsOnMethods = {
+            "testUpdateInOutSequence" })
+    public void testDefaultAPIInvocationWithInvalidContentType() throws Exception {
+
+        String soapToRestAppName = "PhoneVerificationAppInvalidContentType";
+        testAppId6 = createSoapToRestAppAndSubscribeToAPI(soapToRestAppName, "OAUTH", soapToRestAPIId);
+
+        // Generate token
+        ArrayList<String> grantTypes = new ArrayList<>();
+        grantTypes.add(APIMIntegrationConstants.GRANT_TYPE.CLIENT_CREDENTIAL);
+        ApplicationKeyDTO applicationKeyDTO = restAPIStore
+                .generateKeys(testAppId6, "36000", "", ApplicationKeyGenerateRequestDTO.KeyTypeEnum.PRODUCTION, null,
+                        grantTypes);
+
+        String accessToken = applicationKeyDTO.getToken().getAccessToken();
+        String invokeURL = getAPIInvocationURLHttp(API_CONTEXT, API_VERSION_1_0_0) + resourceName;
+
+        Map<String, String> requestHeaders = new HashMap<String, String>();
+        requestHeaders.put(APIMIntegrationConstants.AUTHORIZATION_HEADER, "Bearer " + accessToken);
+        requestHeaders.put("Content-Type", "text/plain");
+        HttpResponse serviceResponse = HTTPSClientUtils.doPost(invokeURL, requestHeaders, payload);
+
+        Assert.assertEquals(serviceResponse.getResponseCode(), HttpStatus.SC_BAD_REQUEST, "Response code is not as expected");
     }
 
     private void startWiremockServer() {
@@ -603,9 +674,34 @@ public class SoapToRestTestCase extends APIManagerLifecycleBaseTest {
         restAPIStore.deleteApplication(testAppId3);
         restAPIStore.deleteApplication(testAppId4);
         restAPIStore.deleteApplication(testAppId5);
+        restAPIStore.deleteApplication(testAppId6);
         undeployAndDeleteAPIRevisionsUsingRest(soapToRestAPIId, restAPIPublisher);
         restAPIPublisher.deleteAPI(soapToRestAPIId);
         wireMockServer.stop();
         super.cleanUp();
+    }
+
+    public static String removeSpacesInSequence(String xml) throws Exception {
+        String closedXml = "<root>" + xml + "</root>";
+        InputStream stream = new ByteArrayInputStream(closedXml.getBytes());
+        XMLStreamReader parser;
+        StAXOMBuilder builder;
+        try {
+            XMLInputFactory factory = XMLInputFactory.newInstance();
+            factory.setProperty(XMLInputFactory.IS_SUPPORTING_EXTERNAL_ENTITIES, false);
+            parser = factory.createXMLStreamReader(stream);
+            XMLStreamReader filteredReader = factory.createFilteredReader(parser, new StreamFilter() {
+                        public boolean accept(XMLStreamReader r) {
+                            return !r.isWhiteSpace();
+                        }
+                    });
+            builder = new StAXOMBuilder(filteredReader);
+        } catch (XMLStreamException e) {
+            String msg = "Error in initializing the parser.";
+            log.error(msg, e);
+            throw new Exception(msg, e);
+        }
+
+        return builder.getDocumentElement().toString().replace(" ","");
     }
 }

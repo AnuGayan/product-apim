@@ -289,7 +289,21 @@ public class RestAPIPublisherImpl {
             body.setOperations(operations);
         }
         body.setMediationPolicies(apiRequest.getMediationPolicies());
-        body.setBusinessInformation(new APIBusinessInformationDTO());
+
+        APIBusinessInformationDTO businessInformationDTO = new APIBusinessInformationDTO();
+        if (apiRequest.getBusinessOwner() != null) {
+            businessInformationDTO.setBusinessOwner(apiRequest.getBusinessOwner());
+        }
+        if (apiRequest.getBusinessOwnerEmail() != null) {
+            businessInformationDTO.setBusinessOwnerEmail(apiRequest.getBusinessOwnerEmail());
+        }
+        if (apiRequest.getTechnicalOwner() != null) {
+            businessInformationDTO.setTechnicalOwner(apiRequest.getTechnicalOwner());
+        }
+        if (apiRequest.getTechnicalOwnerEmail() != null) {
+            businessInformationDTO.setTechnicalOwnerEmail(apiRequest.getTechnicalOwnerEmail());
+        }
+        body.setBusinessInformation(businessInformationDTO);
         body.setCorsConfiguration(new APICorsConfigurationDTO());
         body.setTags(Arrays.asList(apiRequest.getTags().split(",")));
         body.setEndpointConfig(apiRequest.getEndpointConfig());
@@ -2021,5 +2035,25 @@ public class RestAPIPublisherImpl {
     public ApiResponse<APIProductDTO> updateAPIProduct(APIProductDTO apiProductDTO) throws ApiException {
 
         return apiProductsApi.updateAPIProductWithHttpInfo(apiProductDTO.getId(), apiProductDTO, null);
+    }
+
+    /**
+     * This method is used to block subscriptions.
+     *
+     *
+     * @param subscriptionId
+     * @param blockState
+     * @return
+     */
+    public HttpResponse blockSubscription(String subscriptionId, String blockState){
+        HttpResponse response;
+        try {
+            subscriptionsApi.blockSubscription(subscriptionId,blockState , null );
+            response = new HttpResponse("Successfully blocked API subscription", 200);
+        } catch (ApiException e) {
+            response = new HttpResponse("Failed to block subscription for subscription ID: " + subscriptionId,
+                    e.getCode());
+        }
+        return response;
     }
 }

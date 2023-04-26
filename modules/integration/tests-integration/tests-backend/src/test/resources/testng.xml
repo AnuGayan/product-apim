@@ -32,6 +32,7 @@
             <class name="org.wso2.am.integration.tests.jwt.JWTRevocationTestCase"/>
             <class name="org.wso2.am.integration.tests.oas.OASTestCase"/>
             <class name="org.wso2.am.integration.tests.api.revision.APIRevisionTestCase"/>
+            <class name="org.wso2.am.integration.tests.api.APICreationTestCase"/>
             <class name="org.wso2.am.integration.tests.other.APIInvocationWithMessageTypeProperty"/>
         </classes>
     </test>
@@ -97,6 +98,7 @@
             <class name="org.wso2.am.integration.tests.api.lifecycle.APIMANAGER5337SubscriptionRetainTestCase"/>
             <class name="org.wso2.am.integration.tests.header.CustomHeaderTestCase"/>
             <!--<class name="org.wso2.am.integration.tests.header.DuplicateHeaderTestCase"/>-->
+            <!--<class name="org.wso2.am.integration.tests.token.TokenResponseWithCustomObjectsTestCase"/>-->
             <class name="org.wso2.am.integration.tests.token.InvalidTokenTestCase"/>
             <class name="org.wso2.am.integration.tests.throttling.APIThrottlingTestCase"/>
             <class name="org.wso2.am.integration.tests.throttling.JWTBandwidthThrottlingTestCase"/>
@@ -227,6 +229,7 @@
             <!--disable test case since it need to configure DAS -->
             <!--<class name="org.wso2.am.integration.tests.stats.APIMANAGER4731StoreStatisticsWhenTokenEncryptedTestCase"/>-->
             <!--<class name="org.wso2.am.integration.tests.other.APIMANAGER5327KeyGenerationWithPGSQLTestCase"/>-->
+            <class name="org.wso2.am.integration.tests.other.DevPortalBusinessInformationViewTestCase"/>
         </classes>
     </test>
 
@@ -354,7 +357,7 @@
         <classes>
             <class name="org.wso2.am.integration.tests.api.lifecycle.ChangeEndPointSecurityOfAPITestCase"/>
             <class name="org.wso2.am.integration.tests.api.lifecycle.ChangeEndPointSecurityPerTypeTestCase"/>
-<!--            <class name="org.wso2.am.integration.tests.api.lifecycle.AddEndPointSecurityPerTypeTestCase"/>-->
+            <class name="org.wso2.am.integration.tests.api.lifecycle.AddEndPointSecurityPerTypeTestCase"/>
         </classes>
     </test>
     <test name="apim-integration-tests-external-idp" preserve-order="true" parallel="false"
