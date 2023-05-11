@@ -427,7 +427,7 @@ public class JWTRequestCountThrottlingTestCase extends APIMIntegrationBaseTest {
         boolean isThrottled = false;
         for (int j = 0; j < expectedCount; j++) {
             if (j == expectedCount - 1) {
-                log.info("Waiting for JMS messages to arrive in gateway before " + expectedCount + " sending request");
+                log.info("Waiting for JMS messages to arrive in gateway before sending " + expectedCount + " request");
                 Thread.sleep(ThrottlingUtils.WAIT_FOR_JMS_THROTTLE_EVENT_IN_MILLISECONDS);
             }
             String body = "{\"payload\" : \"00000000000000000\"}";
