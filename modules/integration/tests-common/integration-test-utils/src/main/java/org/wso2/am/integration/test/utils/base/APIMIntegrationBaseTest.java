@@ -1050,19 +1050,16 @@ public class APIMIntegrationBaseTest {
         }
     }
 
-    protected static void waitUntilClockHour() throws InterruptedException {
-        while (getWaitTime() > 0) {
-            Thread.sleep(60000);
+    protected static void waitUntilClockMinute() throws InterruptedException {
+        long waitTime = getWaitTime();
+        if (waitTime > 0) {
+            Thread.sleep(waitTime * 1000);
         }
     }
 
     protected static long getWaitTime() {
         Calendar calendar = Calendar.getInstance();
-        int minutesInTime = calendar.get(Calendar.MINUTE);
-        if (60 - minutesInTime >= 5) {
-            return 0;
-        } else {
-            return 1;
-        }
+        int secondsInTime = calendar.get(Calendar.SECOND);
+        return 60 - secondsInTime;
     }
 }
