@@ -53,6 +53,7 @@ import org.wso2.am.integration.test.utils.base.APIMIntegrationConstants;
 import org.wso2.am.integration.test.utils.bean.APIRequest;
 import org.wso2.am.integration.test.utils.generic.APIMTestCaseUtils;
 import org.wso2.am.integration.test.utils.http.HTTPSClientUtils;
+import org.wso2.am.integration.tests.throttling.ThrottlingUtils;
 import org.wso2.carbon.automation.engine.context.TestUserMode;
 import org.wso2.carbon.automation.test.utils.http.client.HttpRequestUtil;
 import org.wso2.carbon.automation.test.utils.http.client.HttpResponse;
@@ -151,10 +152,10 @@ public class JWTRequestCountThrottlingTestCase extends APIMIntegrationBaseTest {
         Assert.assertNotNull(apiPolicyId1, "The policy ID cannot be null or empty");
 
         //Create the advanced throttling policy with conditions
-        RequestCountLimitDTO requestCountLimit10000PerMin =
+        RequestCountLimitDTO requestCountLimit10PerMin =
                 DtoFactory.createRequestCountLimitDTO("min", 1, 10L);
         ThrottleLimitDTO defaultLimit2 =
-                DtoFactory.createThrottleLimitDTO(ThrottleLimitDTO.TypeEnum.REQUESTCOUNTLIMIT, requestCountLimit10000PerMin, null);
+                DtoFactory.createThrottleLimitDTO(ThrottleLimitDTO.TypeEnum.REQUESTCOUNTLIMIT, requestCountLimit10PerMin, null);
         AdvancedThrottlePolicyDTO requestCountAdvancedPolicyDTO2 = DtoFactory
                 .createAdvancedThrottlePolicyDTO(apiPolicyName2, "", "", false, defaultLimit2,
                         createConditionalGroups(defaultLimit));
@@ -405,7 +406,7 @@ public class JWTRequestCountThrottlingTestCase extends APIMIntegrationBaseTest {
 
     private boolean isThrottled(Map<String, String> requestHeaders, Map<String, String> queryParams,
                                 int expectedCount) throws InterruptedException, IOException {
-        waitUntilClockHour();
+        waitUntilClockMinute();
         StringBuilder url = new StringBuilder(gatewayUrl);
         if (queryParams != null) {
             int i = 0;
@@ -425,9 +426,13 @@ public class JWTRequestCountThrottlingTestCase extends APIMIntegrationBaseTest {
         HttpResponse response;
         boolean isThrottled = false;
         for (int j = 0; j < expectedCount; j++) {
+            if (j == expectedCount - 1) {
+                log.info("Waiting for JMS messages to arrive in gateway before " + expectedCount + " sending request");
+                Thread.sleep(ThrottlingUtils.WAIT_FOR_JMS_THROTTLE_EVENT_IN_MILLISECONDS);
+            }
             String body = "{\"payload\" : \"00000000000000000\"}";
             response = HTTPSClientUtils.doPost(url.toString(), requestHeaders, body);
-            log.info("==============Response " + response.getResponseCode());
+            log.info("============== Response " + response.getResponseCode());
             if (response.getResponseCode() == 429) {
                 isThrottled = true;
                 break;
