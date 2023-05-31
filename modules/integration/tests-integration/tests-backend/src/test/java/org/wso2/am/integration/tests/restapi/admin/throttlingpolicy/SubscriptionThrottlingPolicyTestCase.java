@@ -235,7 +235,12 @@ public class SubscriptionThrottlingPolicyTestCase extends APIMIntegrationBaseTes
         requestHeaders.put("content-type", "application/json");
         HttpResponse response1;
         boolean isThrottled1 = false;
+        int totalNumberOfRequests = 15;
+        ThrottlingUtils.waitUntilNextClockHourIfCurrentHourIsInLastNMinutes(3);
         for (int i = 0; i < 15; i++) {
+            if (i == totalNumberOfRequests - 1) {
+                Thread.sleep(ThrottlingUtils.WAIT_FOR_JMS_THROTTLE_EVENT_IN_MILLISECONDS);
+            }
             response1 = HttpRequestUtil.doGet(getAPIInvocationURLHttp(API_CONTEXT, API_VERSION) + API_END_POINT_METHOD,
                     requestHeaders);
             if (response1.getResponseCode() == 429) {
