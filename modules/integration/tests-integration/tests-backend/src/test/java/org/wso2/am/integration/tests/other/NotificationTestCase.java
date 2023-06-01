@@ -135,7 +135,7 @@ public class NotificationTestCase extends APIMIntegrationBaseTest {
         //publishing API
         restAPIPublisher.changeAPILifeCycleStatus(apiId, APILifeCycleAction.PUBLISH.getAction(), null);
 
-        UserManagementUtils.signupUser(STORE_USERNAME, STORE_PASSWORD, FIRST_NAME, ORGANIZATION, USER_EMAIL_ADDRESS);
+        UserManagementUtils.signupUser(STORE_USERNAME, STORE_PASSWORD, FIRST_NAME, ORGANIZATION, USER_EMAIL_ADDRESS, SUPER_TENANT_DOMAIN);
 
         restAPIStoreClient = new
                 RestAPIStoreImpl(STORE_USERNAME, STORE_PASSWORD, SUPER_TENANT_DOMAIN, storeURLHttp);
