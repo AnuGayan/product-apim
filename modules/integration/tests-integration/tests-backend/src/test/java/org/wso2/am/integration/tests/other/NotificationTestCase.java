@@ -113,14 +113,6 @@ public class NotificationTestCase extends APIMIntegrationBaseTest {
     @Test(groups = {"wso2.am"}, description = "Testing Notification Feature")
     public void notificationTestCase() throws Exception {
 
-        //Setting greenMail server
-        ServerSetup setup = new ServerSetup(SMTP_TEST_PORT, "localhost", "smtp");
-        greenMail = new GreenMail(setup);
-        //Creating user in greenMail server
-        greenMail.setUser(USER_EMAIL_ADDRESS, EMAIL_USERNAME, EMAIL_PASSWORD);
-        greenMail.start();
-        log.info("green mail server started ");
-
         // Adding API
         String url = getGatewayURLNhttp() + "response";
         String description = "This is a test API created by API manager integration test";
@@ -227,7 +219,9 @@ public class NotificationTestCase extends APIMIntegrationBaseTest {
         undeployAndDeleteAPIRevisionsUsingRest(newApiId, restAPIPublisher);
         restAPIPublisher.deleteAPI(apiId);
         restAPIPublisher.deleteAPI(newApiId);
-        greenMail.stop();
+        if (greenMail != null) {
+            greenMail.stop();
+        }
     }
 
     @DataProvider
