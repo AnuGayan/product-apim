@@ -25,6 +25,7 @@ public class UserManagementUtils {
 
     private static UserAdminStub userAdminStub;
     private static final String serviceName = "UserAdmin";
+    private static final String CARBON_SUPER = "carbon.super";
     private static final Log log = LogFactory.getLog(UserManagementUtils.class);
 
     public static void addUser(String userName, String password, String backendURL, String[] roleList,
@@ -83,12 +84,19 @@ public class UserManagementUtils {
      * @throws IOException
      * @throws APIManagerIntegrationTestException
      */
-    public static void signupUser(String userName, String password, String firstName,
-                                  String organization, String email)  throws IOException, APIManagerIntegrationTestException {
+    public static void signupUser(String userName, String password, String firstName, 
+                                  String organization, String email, String tenantDomain)  throws IOException,
+                APIManagerIntegrationTestException {
         CloseableHttpClient client = HTTPSClientUtils.getHttpsClient();
-        HttpPost postRequest = new HttpPost("https://localhost:9943/api/identity/user/v1.0/me");
+        String admin = "admin";
+        String urlTemplate = "https://localhost:9943/api/identity/user/v1.0/me";
+        if (!tenantDomain.isEmpty() && !CARBON_SUPER.equals(tenantDomain)) {
+            admin = admin.concat("@").concat(tenantDomain);
+            urlTemplate = "https://localhost:9943/t/" + tenantDomain + "/api/identity/user/v1.0/me";
+        }
+        HttpPost postRequest = new HttpPost(String.format(urlTemplate, tenantDomain));
         postRequest.addHeader(APIMIntegrationConstants.AUTHORIZATION_HEADER,
-                "Basic " + encodeCredentials("admin", "admin".toCharArray()));
+                        "Basic " + encodeCredentials(admin , "admin".toCharArray()));
         postRequest.addHeader("Content-Type", APPLICATION_JSON);
 
         StringEntity payload = new StringEntity(
