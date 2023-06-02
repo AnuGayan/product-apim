@@ -48,6 +48,7 @@ import org.wso2.am.integration.tests.api.lifecycle.APIManagerLifecycleBaseTest;
 
 import org.wso2.carbon.apimgt.api.WorkflowStatus;
 import org.wso2.carbon.apimgt.api.model.APIIdentifier;
+import org.wso2.carbon.automation.engine.context.beans.User;
 import org.wso2.carbon.automation.engine.context.TestUserMode;
 import org.wso2.carbon.automation.test.utils.http.client.HttpResponse;
 import org.wso2.carbon.integration.common.admin.client.UserManagementClient;
@@ -65,7 +66,7 @@ import static org.wso2.am.integration.test.utils.base.APIMIntegrationConstants.S
 public class WorkflowApprovalExecutorTest extends APIManagerLifecycleBaseTest {
 
     private UserManagementClient userManagementClient = null;
-    protected String user;
+    protected User user;
     private String originalWFExtentionsXML;
     private String newWFExtentionsXML;
     private String USER_SMITH = "smith";
@@ -134,6 +135,7 @@ public class WorkflowApprovalExecutorTest extends APIManagerLifecycleBaseTest {
 
         apiPublisher = new APIPublisherRestClient(publisherUrls.getWebAppURLHttp());
         apiStore = new APIStoreRestClient(storeUrls.getWebAppURLHttp());
+        user = keyManagerContext.getContextTenant().getContextUser();
         if (TestUserMode.TENANT_ADMIN.equals(userMode)) {
                 apiProvider = USER_SMITH.concat("@").concat(user.getUserDomain());
         } else {
@@ -448,7 +450,7 @@ public class WorkflowApprovalExecutorTest extends APIManagerLifecycleBaseTest {
         //update pending workflow requests  by admin
         response = restAPIAdmin.updateWorkflowStatus(externalWorkflowRef);
         assertEquals(response.getResponseCode(), 200,
-                "failed to update the workflow request for user admin");
+                "Failed to update the workflow request for user admin");
 
         String jsonUpdateResponse = response.getData();
         Gson gsonUpdateResponse = new Gson();
