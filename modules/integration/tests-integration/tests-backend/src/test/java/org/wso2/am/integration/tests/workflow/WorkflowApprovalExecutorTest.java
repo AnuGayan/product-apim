@@ -50,6 +50,7 @@ import org.wso2.carbon.apimgt.api.WorkflowStatus;
 import org.wso2.carbon.apimgt.api.model.APIIdentifier;
 import org.wso2.carbon.automation.engine.context.beans.User;
 import org.wso2.carbon.automation.engine.context.TestUserMode;
+import org.wso2.carbon.automation.test.utils.common.TestConfigurationProvider;
 import org.wso2.carbon.automation.test.utils.http.client.HttpResponse;
 import org.wso2.carbon.integration.common.admin.client.UserManagementClient;
 
@@ -69,6 +70,7 @@ public class WorkflowApprovalExecutorTest extends APIManagerLifecycleBaseTest {
     protected User user;
     private String originalWFExtentionsXML;
     private String newWFExtentionsXML;
+    private String newSignUPXML;
     private String USER_SMITH = "smith";
     private String ADMIN_ROLE = "admin";
     private String USER_ADMIN = "jackson";
@@ -84,6 +86,8 @@ public class WorkflowApprovalExecutorTest extends APIManagerLifecycleBaseTest {
     private final String APIM_CONFIG_XML = "api-manager.xml";
     private final String DEFAULT_WF_EXTENTIONS_XML_REG_CONFIG_LOCATION =
             "/_system/governance/apimgt/applicationdata/workflow-extensions.xml";
+    private final String DEFAULT_SIGN_UP_XML_REG_CONFIG_LOCATION =
+            "/_system/governance/apimgt/applicationdata/sign-up-config.xml";
     private RestAPIAdminImpl restAPIAdminUser;
     private static final Log log = LogFactory.getLog(WorkflowApprovalExecutorTest.class);
     private APIIdentifier apiIdentifier;
@@ -137,9 +141,12 @@ public class WorkflowApprovalExecutorTest extends APIManagerLifecycleBaseTest {
         apiStore = new APIStoreRestClient(storeUrls.getWebAppURLHttp());
         user = keyManagerContext.getContextTenant().getContextUser();
         if (TestUserMode.TENANT_ADMIN.equals(userMode)) {
-                apiProvider = USER_SMITH.concat("@").concat(user.getUserDomain());
+            apiProvider = USER_SMITH.concat("@").concat(user.getUserDomain());
+            newSignUPXML = readFile(TestConfigurationProvider.getResourceLocation() + File.separator + "artifacts" +
+                    File.separator + "AM" + File.separator + "lifecycletest" + File.separator + "sign-up-config.xml");
+            resourceAdminServiceClient.updateTextContent(DEFAULT_SIGN_UP_XML_REG_CONFIG_LOCATION, newSignUPXML);
         } else {
-                apiProvider = USER_SMITH;
+            apiProvider = USER_SMITH;
         }
     }
 
