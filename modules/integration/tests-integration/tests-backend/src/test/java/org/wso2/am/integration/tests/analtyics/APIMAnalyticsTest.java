@@ -18,7 +18,7 @@
 
 package org.wso2.am.integration.tests.analtyics;
 
-import jdk.internal.joptsimple.internal.Strings;
+import org.apache.commons.lang3.StringUtils;
 import org.apache.http.HttpHeaders;
 import org.junit.Assert;
 import org.testng.annotations.AfterClass;
@@ -113,7 +113,7 @@ public class APIMAnalyticsTest extends APIManagerLifecycleBaseTest {
         apiRequest.setVersion(API_VERSION);
         apiRequest.setProvider(user.getUserName());
         apiId = createAndPublishAPIUsingRest(apiRequest, restAPIPublisher, false);
-        HttpResponse applicationResponse = restAPIStore.createApplication(APPLICATION_NAME, Strings.EMPTY,
+        HttpResponse applicationResponse = restAPIStore.createApplication(APPLICATION_NAME, StringUtils.EMPTY,
                                                                           APIMIntegrationConstants.APPLICATION_TIER.UNLIMITED,
                                                                           ApplicationDTO.TokenTypeEnum.JWT);
 
@@ -133,7 +133,7 @@ public class APIMAnalyticsTest extends APIManagerLifecycleBaseTest {
         requestHeaders.put(HttpHeaders.ACCEPT, MediaType.APPLICATION_JSON);
         requestHeaders.put(HttpHeaders.AUTHORIZATION, BEARER + accessToken);
         HttpResponse apiInvokeResponse = HttpRequestUtil.doGet(
-                getAPIInvocationURLHttps(API_CONTEXT.replace(File.separator, Strings.EMPTY), API_VERSION)
+                getAPIInvocationURLHttps(API_CONTEXT.replace(File.separator, StringUtils.EMPTY), API_VERSION)
                         + File.separator + API_ENDPOINT_METHOD, requestHeaders);
         assertEquals(apiInvokeResponse.getResponseCode(), HTTP_RESPONSE_CODE_OK, RESPONSE_CODE_MISMATCH_ERROR_MESSAGE);
 
