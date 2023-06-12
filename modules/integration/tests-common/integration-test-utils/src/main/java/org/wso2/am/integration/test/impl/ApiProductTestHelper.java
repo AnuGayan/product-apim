@@ -217,7 +217,7 @@ public class ApiProductTestHelper {
         boolean isAPIProductInListing = false;
         int productCount = 0;
         int tries = 0;
-        while (productCount == 0 && tries < 10) {
+        while (productCount == 0 && tries < 15) {
             APIListDTO apiList = restAPIStore.getAllAPIs();
             List<APIInfoDTO> apiInfos = apiList.getList();
             for (APIInfoDTO apiInfo : apiInfos) {
