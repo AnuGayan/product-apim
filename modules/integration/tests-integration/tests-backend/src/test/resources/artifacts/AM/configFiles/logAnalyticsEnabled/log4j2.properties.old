@@ -15,7 +15,7 @@ appender.CARBON_CONSOLE.filter.threshold.level = DEBUG
 appender.CARBON_LOGFILE.type = RollingFile
 appender.CARBON_LOGFILE.name = CARBON_LOGFILE
 appender.CARBON_LOGFILE.fileName = ${sys:carbon.home}/repository/logs/wso2carbon.log
-appender.CARBON_LOGFILE.filePattern = ${sys:carbon.home}/repository/logs/wso2carbon-%d{MM-dd-yyyy}.log
+appender.CARBON_LOGFILE.filePattern = ${sys:carbon.home}/repository/logs/wso2carbon-%d{MM-dd-yyyy}-%i.log
 appender.CARBON_LOGFILE.layout.type = PatternLayout
 appender.CARBON_LOGFILE.layout.pattern = TID: [%tenantId] [%appName] [%d] %5p {%c} - %m%ex%n
 appender.CARBON_LOGFILE.policies.type = Policies
@@ -97,11 +97,20 @@ appender.CORRELATION.filter.threshold.type = ThresholdFilter
 appender.CORRELATION.filter.threshold.level = INFO
 
 
-appender.ERROR_LOGFILE.type = File
+appender.ERROR_LOGFILE.type = RollingFile
 appender.ERROR_LOGFILE.name = ERROR_LOGFILE
-appender.ERROR_LOGFILE.fileName =${sys:carbon.home}/repository/logs/${sys:instance.log}/wso2-apigw-errors.log
+appender.ERROR_LOGFILE.fileName =${sys:carbon.home}/repository/logs/wso2-apigw-errors.log
+appender.ERROR_LOGFILE.filePattern =${sys:carbon.home}/repository/logs/wso2-apigw-errors-%d{MM-dd-yyyy}-%i.log.gz
 appender.ERROR_LOGFILE.layout.type = PatternLayout
 appender.ERROR_LOGFILE.layout.pattern = %d{ISO8601} [%X{ip}-%X{host}] [%t] %5p %c{1} %m%n
+appender.ERROR_LOGFILE.policies.type = Policies
+appender.ERROR_LOGFILE.policies.time.type = TimeBasedTriggeringPolicy
+appender.ERROR_LOGFILE.policies.time.interval = 1
+appender.ERROR_LOGFILE.policies.time.modulate = true
+appender.ERROR_LOGFILE.policies.size.type = SizeBasedTriggeringPolicy
+appender.ERROR_LOGFILE.policies.size.size=10MB
+appender.ERROR_LOGFILE.strategy.type = DefaultRolloverStrategy
+appender.ERROR_LOGFILE.strategy.max = 20
 appender.ERROR_LOGFILE.filter.threshold.type = ThresholdFilter
 appender.ERROR_LOGFILE.filter.threshold.level = WARN
 
@@ -115,11 +124,20 @@ appender.CARBON_SYS_LOG.layout.pattern = [%d] %5p - %x %m {%c}%n
 appender.CARBON_SYS_LOG.filter.threshold.type = ThresholdFilter
 appender.CARBON_SYS_LOG.filter.threshold.level = DEBUG
 
-appender.OPEN_TRACING.type = File
+appender.OPEN_TRACING.type = RollingFile
 appender.OPEN_TRACING.name = OPEN_TRACING
-appender.OPEN_TRACING.fileName =${sys:carbon.home}/repository/logs/${sys:instance.log}/wso2-apimgt-open-tracing.log
+appender.OPEN_TRACING.fileName =${sys:carbon.home}/repository/logs/wso2-apimgt-open-tracing.log
+appender.OPEN_TRACING.filePattern =${sys:carbon.home}/repository/logs/wso2-apimgt-open-tracing-%d{MM-dd-yyyy}-%i.log.gz
 appender.OPEN_TRACING.layout.type = PatternLayout
 appender.OPEN_TRACING.layout.pattern = %d{HH:mm:ss,SSS} [%X{ip}-%X{host}] [%t] %5p %m%nn
+appender.OPEN_TRACING.policies.type = Policies
+appender.OPEN_TRACING.policies.time.type = TimeBasedTriggeringPolicy
+appender.OPEN_TRACING.policies.time.interval = 1
+appender.OPEN_TRACING.policies.time.modulate = true
+appender.OPEN_TRACING.policies.size.type = SizeBasedTriggeringPolicy
+appender.OPEN_TRACING.policies.size.size=10MB
+appender.OPEN_TRACING.strategy.type = DefaultRolloverStrategy
+appender.OPEN_TRACING.strategy.max = 20
 appender.OPEN_TRACING.filter.threshold.type = ThresholdFilter
 appender.OPEN_TRACING.filter.threshold.level = TRACE
 
@@ -139,8 +157,8 @@ appender.TRACE_APPENDER.strategy.max = 20
 
 appender.SERVICE_APPENDER.type = RollingFile
 appender.SERVICE_APPENDER.name = SERVICE_APPENDER
-appender.SERVICE_APPENDER.fileName = ${sys:carbon.home}/repository/logs/wso2-apigw-service${sys:instance.log}.log
-appender.SERVICE_APPENDER.filePattern = ${sys:carbon.home}/repository/logs/wso2-apigw-service${sys:instance.log}-%i.log
+appender.SERVICE_APPENDER.fileName = ${sys:carbon.home}/repository/logs/wso2-apigw-service.log
+appender.SERVICE_APPENDER.filePattern = ${sys:carbon.home}/repository/logs/wso2-apigw-service-%i.log
 appender.SERVICE_APPENDER.layout.type = PatternLayout
 appender.SERVICE_APPENDER.layout.pattern = %d{ISO8601} [%X{ip}-%X{host}] [%t] %5p %c{1} %m%n
 appender.SERVICE_APPENDER.policies.type = Policies
@@ -154,8 +172,12 @@ appender.osgi.type = PaxOsgi
 appender.osgi.name = PaxOsgi
 appender.osgi.filter = *
 
-loggers = AUDIT_LOG, trace-messages, org-apache-coyote, com-hazelcast, Owasp-CsrfGuard, org-apache-axis2-wsdl-codegen-writer-PrettyPrinter, org-apache-axis2-clustering, org-apache-catalina, org-apache-tomcat, org-wso2-carbon-apacheds, org-apache-directory-server-ldap, org-apache-directory-server-core-event, com-atomikos, org-quartz, org-apache-jackrabbit-webdav, org-apache-juddi, org-apache-commons-digester-Digester, org-apache-jasper-compiler-TldLocationsCache, org-apache-qpid, org-apache-qpid-server-Main, qpid-message, qpid-message-broker-listening, org-apache-tiles, org-apache-commons-httpclient, org-apache-solr, me-prettyprint-cassandra-hector-TimingLogger, org-apache-axis-enterprise, org-apache-directory-shared-ldap, org-apache-directory-server-ldap-handlers, org-apache-directory-shared-ldap-entry-DefaultServerAttribute, org-apache-directory-server-core-DefaultDirectoryService, org-apache-directory-shared-ldap-ldif-LdifReader, org-apache-directory-server-ldap-LdapProtocolHandler, org-apache-directory-server-core, org-apache-directory-server-ldap-LdapSession, DataNucleus, Datastore, Datastore-Schema, JPOX-Datastore, JPOX-Plugin, JPOX-MetaData, JPOX-Query, JPOX-General, JPOX-Enhancer, org-apache-hadoop-hive, hive, ExecMapper, ExecReducer, net-sf-ehcache-config-ConfigurationFactory, axis2Deployment, equinox, tomcat2, StAXDialectDetector, trace, synapse, synapse_transport, axis2, axis2_transport, org-wso2-carbon, hunsicker, thrift-publisher, service_logger, trace_logger, org-wso2-carbon-apimgt-gateway-mediators-BotDetectionMediator,correlation,custom-handler,org-gateway,org-keymgt,registry-search
+loggers = AUDIT_LOG, trace-messages, org-apache-coyote, com-hazelcast, Owasp-CsrfGuard,
+org-apache-axis2-wsdl-codegen-writer-PrettyPrinter, org-apache-axis2-clustering, org-apache-catalina, org-apache-tomcat,
+ org-wso2-carbon-apacheds, org-apache-directory-server-ldap, org-apache-directory-server-core-event, com-atomikos, org-quartz, org-apache-jackrabbit-webdav, org-apache-juddi, org-apache-commons-digester-Digester, org-apache-jasper-compiler-TldLocationsCache, org-apache-qpid, org-apache-qpid-server-Main, qpid-message, qpid-message-broker-listening, org-apache-tiles, org-apache-commons-httpclient, org-apache-solr, me-prettyprint-cassandra-hector-TimingLogger, org-apache-axis-enterprise, org-apache-directory-shared-ldap, org-apache-directory-server-ldap-handlers, org-apache-directory-shared-ldap-entry-DefaultServerAttribute, org-apache-directory-server-core-DefaultDirectoryService, org-apache-directory-shared-ldap-ldif-LdifReader, org-apache-directory-server-ldap-LdapProtocolHandler, org-apache-directory-server-core, org-apache-directory-server-ldap-LdapSession, DataNucleus, Datastore, Datastore-Schema, JPOX-Datastore, JPOX-Plugin, JPOX-MetaData, JPOX-Query, JPOX-General, JPOX-Enhancer, org-apache-hadoop-hive, hive, ExecMapper, ExecReducer, net-sf-ehcache-config-ConfigurationFactory, axis2Deployment, equinox, tomcat2, StAXDialectDetector, trace, synapse, synapse_transport, axis2, axis2_transport, org-wso2-carbon, hunsicker, thrift-publisher, service_logger, trace_logger, org-wso2-carbon-apimgt-gateway-mediators-BotDetectionMediator, wso2-callhome, correlation, JAGGERY_LOG
 
+logger.JAGGERY_LOG.name = JAGGERY
+logger.JAGGERY_LOG.level = INFO
 
 logger.AUDIT_LOG.name = AUDIT_LOG
 logger.AUDIT_LOG.level = INFO
@@ -174,12 +196,6 @@ logger.com-hazelcast.level = ERROR
 
 logger.Owasp-CsrfGuard.name = Owasp.CsrfGuard
 logger.Owasp-CsrfGuard.level = WARN
-
-logger.org-gateway.name = org.wso2.carbon.apimgt.gateway
-logger.org-gateway.level = DEBUG
-
-logger.org-keymgt.name = org.wso2.carbon.apimgt.keymgt
-logger.org-keymgt.level = DEBUG
 
 logger.org-apache-axis2-wsdl-codegen-writer-PrettyPrinter.name = org.apache.axis2.wsdl.codegen.writer.PrettyPrinter
 logger.org-apache-axis2-wsdl-codegen-writer-PrettyPrinter.level = ERROR
@@ -384,9 +400,6 @@ logger.synapse-headers.level = DEBUG
 logger.synapse-wire.name = org.apache.synapse.transport.http.wire
 logger.synapse-wire.level = DEBUG
 
-logger.registry-search.name = org.wso2.carbon.registry.indexing.service
-logger.registry-search.level = DEBUG
-
 logger.thrift-publisher.name = org.wso2.carbon.databridge.agent.thrift.AsyncDataPublisher
 logger.thrift-publisher.level = WARN
 
@@ -395,14 +408,13 @@ logger.service_logger.level = INFO
 logger.service_logger.additivity = false
 logger.service_logger.appenderRef.SERVICE_APPENDER.ref = SERVICE_APPENDER
 
-
+logger.wso2-callhome.name = org.wso2.callhome
+logger.wso2-callhome.level = INFO
 
 logger.trace_logger.name = TRACE_LOGGER
 logger.trace_logger.level = INFO
 logger.trace_logger.appenderRef.TRACE_APPENDER.ref = TRACE_APPENDER
 
-logger.custom-handler.name = org.test.apim.coustom.handler
-logger.custom-handler.level = DEBUG
 
 # root loggers
 rootLogger.level = ERROR

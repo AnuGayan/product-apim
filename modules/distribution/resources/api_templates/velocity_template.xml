@@ -225,6 +225,7 @@ $in_sequences.get("$resource.getUriTemplate()").get($uri)
 #set( $region = $!{endpoint_config.get("amznRegion")} )
 #set( $resourceName = $!{resource.getAmznResourceName()} )
 #set( $resourceTimeout = $!{resource.getAmznResourceTimeout()} )
+#set( $isContentEncodingEnabled = $!{resource.getAmznResourceContentEncoded()} )
 <class name="org.wso2.carbon.apimgt.gateway.mediators.AWSLambdaMediator">
     #if($accessKey != '')
     <property name="accessKey" value="$accessKey"/>
@@ -244,6 +245,9 @@ $in_sequences.get("$resource.getUriTemplate()").get($uri)
     #end
     #if( $resourceTimeout != '' )
     <property name="resourceTimeout" value="$resourceTimeout"/>
+    #end
+    #if( $isContentEncodingEnabled != '' )
+    <property name="isContentEncodingEnabled" value="$isContentEncodingEnabled"/>
     #end
 </class>
 <loopback />

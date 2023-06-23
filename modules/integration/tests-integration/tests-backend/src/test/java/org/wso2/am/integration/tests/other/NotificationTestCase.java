@@ -93,18 +93,25 @@ public class NotificationTestCase extends APIMIntegrationBaseTest {
         super.init(userMode);
         storeURLHttp = "https://localhost:9943/";
 
-    }
-
-    @Test(groups = {"wso2.am"}, description = "Testing Notification Feature")
-    public void notificationTestCase() throws Exception {
-
         //Setting greenMail server
         ServerSetup setup = new ServerSetup(SMTP_TEST_PORT, "localhost", "smtp");
         greenMail = new GreenMail(setup);
         //Creating user in greenMail server
         greenMail.setUser(USER_EMAIL_ADDRESS, EMAIL_USERNAME, EMAIL_PASSWORD);
         greenMail.start();
+        try {
+            greenMail.start();
+        } catch (IllegalStateException e) {
+            log.warn("There was a problem starting GreenMail server. Retrying in 10 seconds");
+            Thread.sleep(10000);
+            greenMail.start();
+        }
         log.info("green mail server started ");
+
+    }
+
+    @Test(groups = {"wso2.am"}, description = "Testing Notification Feature")
+    public void notificationTestCase() throws Exception {
 
         // Adding API
         String url = getGatewayURLNhttp() + "response";
@@ -128,7 +135,7 @@ public class NotificationTestCase extends APIMIntegrationBaseTest {
         //publishing API
         restAPIPublisher.changeAPILifeCycleStatus(apiId, APILifeCycleAction.PUBLISH.getAction(), null);
 
-        UserManagementUtils.signupUser(STORE_USERNAME, STORE_PASSWORD, FIRST_NAME, ORGANIZATION, USER_EMAIL_ADDRESS);
+        UserManagementUtils.signupUser(STORE_USERNAME, STORE_PASSWORD, FIRST_NAME, ORGANIZATION, USER_EMAIL_ADDRESS, SUPER_TENANT_DOMAIN);
 
         restAPIStoreClient = new
                 RestAPIStoreImpl(STORE_USERNAME, STORE_PASSWORD, SUPER_TENANT_DOMAIN, storeURLHttp);
@@ -212,6 +219,9 @@ public class NotificationTestCase extends APIMIntegrationBaseTest {
         undeployAndDeleteAPIRevisionsUsingRest(newApiId, restAPIPublisher);
         restAPIPublisher.deleteAPI(apiId);
         restAPIPublisher.deleteAPI(newApiId);
+        if (greenMail != null) {
+            greenMail.stop();
+        }
     }
 
     @DataProvider

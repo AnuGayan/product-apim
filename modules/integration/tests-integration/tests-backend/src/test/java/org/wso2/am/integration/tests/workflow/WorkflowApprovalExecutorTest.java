@@ -18,7 +18,6 @@
  */
 package org.wso2.am.integration.tests.workflow;
 
-import java.io.File;
 import com.google.gson.Gson;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
@@ -49,9 +48,13 @@ import org.wso2.am.integration.tests.api.lifecycle.APIManagerLifecycleBaseTest;
 
 import org.wso2.carbon.apimgt.api.WorkflowStatus;
 import org.wso2.carbon.apimgt.api.model.APIIdentifier;
+import org.wso2.carbon.automation.engine.context.beans.User;
 import org.wso2.carbon.automation.engine.context.TestUserMode;
+import org.wso2.carbon.automation.test.utils.common.TestConfigurationProvider;
 import org.wso2.carbon.automation.test.utils.http.client.HttpResponse;
 import org.wso2.carbon.integration.common.admin.client.UserManagementClient;
+
+import java.io.File;
 import java.net.URL;
 import java.util.ArrayList;
 import java.util.List;
@@ -64,9 +67,10 @@ import static org.wso2.am.integration.test.utils.base.APIMIntegrationConstants.S
 public class WorkflowApprovalExecutorTest extends APIManagerLifecycleBaseTest {
 
     private UserManagementClient userManagementClient = null;
-    protected String user;
+    protected User user;
     private String originalWFExtentionsXML;
     private String newWFExtentionsXML;
+    private String newSignUPXML;
     private String USER_SMITH = "smith";
     private String ADMIN_ROLE = "admin";
     private String USER_ADMIN = "jackson";
@@ -82,6 +86,8 @@ public class WorkflowApprovalExecutorTest extends APIManagerLifecycleBaseTest {
     private final String APIM_CONFIG_XML = "api-manager.xml";
     private final String DEFAULT_WF_EXTENTIONS_XML_REG_CONFIG_LOCATION =
             "/_system/governance/apimgt/applicationdata/workflow-extensions.xml";
+    private final String DEFAULT_SIGN_UP_XML_REG_CONFIG_LOCATION =
+            "/_system/governance/apimgt/applicationdata/sign-up-config.xml";
     private RestAPIAdminImpl restAPIAdminUser;
     private static final Log log = LogFactory.getLog(WorkflowApprovalExecutorTest.class);
     private APIIdentifier apiIdentifier;
@@ -95,6 +101,7 @@ public class WorkflowApprovalExecutorTest extends APIManagerLifecycleBaseTest {
     private String apiName = "WorkflowTestAPI";
     private String applicationName = "AppCreationWorkflowTestAPP";
     private String callbackUrl = "https://localhost:9943/services/Version";
+    private String apiProvider;
 
     @Factory(dataProvider = "userModeDataProvider")
     public WorkflowApprovalExecutorTest(TestUserMode userMode) {
@@ -104,7 +111,7 @@ public class WorkflowApprovalExecutorTest extends APIManagerLifecycleBaseTest {
     @DataProvider
     public static Object[][] userModeDataProvider() {
         return new Object[][]{new Object[]{TestUserMode.SUPER_TENANT_ADMIN},
-                new Object[]{TestUserMode.SUPER_TENANT_USER}
+                new Object[]{TestUserMode.TENANT_ADMIN}
         };
     }
 
@@ -132,6 +139,15 @@ public class WorkflowApprovalExecutorTest extends APIManagerLifecycleBaseTest {
 
         apiPublisher = new APIPublisherRestClient(publisherUrls.getWebAppURLHttp());
         apiStore = new APIStoreRestClient(storeUrls.getWebAppURLHttp());
+        user = keyManagerContext.getContextTenant().getContextUser();
+        if (TestUserMode.TENANT_ADMIN.equals(userMode)) {
+            apiProvider = USER_SMITH.concat("@").concat(user.getUserDomain());
+            newSignUPXML = readFile(TestConfigurationProvider.getResourceLocation() + File.separator + "artifacts" +
+                    File.separator + "AM" + File.separator + "lifecycletest" + File.separator + "sign-up-config.xml");
+            resourceAdminServiceClient.updateTextContent(DEFAULT_SIGN_UP_XML_REG_CONFIG_LOCATION, newSignUPXML);
+        } else {
+            apiProvider = USER_SMITH;
+        }
     }
 
     @Test(groups = {"wso2.am"}, description = "Api workflow process check")
@@ -147,7 +163,8 @@ public class WorkflowApprovalExecutorTest extends APIManagerLifecycleBaseTest {
         apiRequest.setVersion(apiVersion);
         apiRequest.setTiersCollection(APIMIntegrationConstants.API_TIER.UNLIMITED);
         apiRequest.setTier(APIMIntegrationConstants.API_TIER.UNLIMITED);
-        apiRequest.setProvider(USER_SMITH);
+        apiRequest.setDescription("Sample workflow API");
+        apiRequest.setProvider(apiProvider);
         HttpResponse apiResponse = restAPIPublisher.addAPI(apiRequest);
         apiId = apiResponse.getData();
         // Create Revision and Deploy to Gateway
@@ -169,7 +186,7 @@ public class WorkflowApprovalExecutorTest extends APIManagerLifecycleBaseTest {
                 "Lifecycle state should remain without changing till approval. ");
         //Get workflow pending requests by unauthorized user
         String workflowType = "AM_API_STATE";
-        restAPIAdminUser = new RestAPIAdminImpl(USER_SMITH, "john123", "carbon.super",
+        restAPIAdminUser = new RestAPIAdminImpl(USER_SMITH, "john123", user.getUserDomain(),
                 adminURLHttps);
         org.wso2.am.integration.test.HttpResponse response = restAPIAdminUser.getWorkflows(workflowType);
         assertEquals(response.getResponseCode(), 401,
@@ -440,7 +457,7 @@ public class WorkflowApprovalExecutorTest extends APIManagerLifecycleBaseTest {
         //update pending workflow requests  by admin
         response = restAPIAdmin.updateWorkflowStatus(externalWorkflowRef);
         assertEquals(response.getResponseCode(), 200,
-                "failed to update the workflow request for user admin");
+                "Failed to update the workflow request for user admin");
 
         String jsonUpdateResponse = response.getData();
         Gson gsonUpdateResponse = new Gson();
@@ -470,8 +487,7 @@ public class WorkflowApprovalExecutorTest extends APIManagerLifecycleBaseTest {
         String store = storeURLHttps;
 
         //User self sign up process
-        UserManagementUtils.signupUser(username, password, giveName, organization, email);
-        //APIStoreClient = new RestAPIStoreImpl(username, password, SUPER_TENANT_DOMAIN, store);
+        UserManagementUtils.signupUser(username, password, giveName, organization, email, user.getUserDomain());
         //get workflow pending requests by unauthorized user
         String workflowType = "AM_USER_SIGNUP";
         org.wso2.am.integration.test.HttpResponse response = restAPIAdminUser.getWorkflows(workflowType);
@@ -546,7 +562,7 @@ public class WorkflowApprovalExecutorTest extends APIManagerLifecycleBaseTest {
         apiRequest.setVersion(apiVersion);
         apiRequest.setTiersCollection(APIMIntegrationConstants.API_TIER.UNLIMITED);
         apiRequest.setTier(APIMIntegrationConstants.API_TIER.UNLIMITED);
-        apiRequest.setProvider(USER_SMITH);
+        apiRequest.setProvider(apiProvider);
         HttpResponse apiResponse = restAPIPublisher.addAPI(apiRequest);
         String apiIdNew = apiResponse.getData();
         // Create Revision and Deploy to Gateway
@@ -613,13 +629,22 @@ public class WorkflowApprovalExecutorTest extends APIManagerLifecycleBaseTest {
         assertEquals(response.getResponseCode(), 500,
                 "Clean up pending task process is failed for API state change");
 
-        //create Application
-        HttpResponse applicationResponseNew = restAPIStore.createApplication(applicationName,
+        //create Application 2
+        String apiName2 = "WorkflowCheckingAPINew2";
+        String apiContext2 = "workflowChecking";
+        String applicationName2 = "MyApp2";
+        APIRequest apiRequest2;
+        apiRequest2 = new APIRequest(apiName2, apiContext2, new URL(url));
+        apiRequest2.setVersion(apiVersion);
+        apiRequest2.setTiersCollection(APIMIntegrationConstants.API_TIER.UNLIMITED);
+        apiRequest2.setTier(APIMIntegrationConstants.API_TIER.UNLIMITED);
+        apiRequest2.setProvider(apiProvider);
+        HttpResponse applicationResponseNew = restAPIStore.createApplication(applicationName2,
                 "Testing application", APIMIntegrationConstants.APPLICATION_TIER.UNLIMITED,
                 ApplicationDTO.TokenTypeEnum.OAUTH);
         String applicationIDSecond = applicationResponseNew.getData();
         //create API and request for publish the API
-        HttpResponse apiResponseNew = restAPIPublisher.addAPI(apiRequest);
+        HttpResponse apiResponseNew = restAPIPublisher.addAPI(apiRequest2);
         String apiIdSecond = apiResponseNew.getData();
         // Create Revision and Deploy to Gateway
         createAPIRevisionAndDeployUsingRest(apiIdSecond, restAPIPublisher);
@@ -638,7 +663,7 @@ public class WorkflowApprovalExecutorTest extends APIManagerLifecycleBaseTest {
         for (int i = 0; i < arr.length(); i++) {
             JSONObject listItem = (JSONObject) arr.get(i);
             properties = (JSONObject) listItem.get("properties");
-            if (properties.has("apiName") && apiName.equals(properties.get("apiName"))) {
+            if (properties.has("apiName") && apiName2.equals(properties.get("apiName"))) {
                 apiStateChangeNewExternalWorkflowRef = (String) listItem.get("referenceId");
             }
         }
@@ -660,7 +685,7 @@ public class WorkflowApprovalExecutorTest extends APIManagerLifecycleBaseTest {
         for (int i = 0; i < arr.length(); i++) {
             JSONObject listItem = (JSONObject) arr.get(i);
             properties = (JSONObject) listItem.get("properties");
-            if (properties.has("applicationName") && applicationName.equals(properties.get("applicationName"))) {
+            if (properties.has("applicationName") && applicationName2.equals(properties.get("applicationName"))) {
                 applicationCreationNewExternalWorkflowRef = (String) listItem.get("referenceId");
             }
         }
@@ -688,8 +713,8 @@ public class WorkflowApprovalExecutorTest extends APIManagerLifecycleBaseTest {
         for (int i = 0; i < arr.length(); i++) {
             JSONObject listItem = (JSONObject) arr.get(i);
             properties = (JSONObject) listItem.get("properties");
-            if (properties.has("applicationName") && applicationName.equals(properties.get("applicationName"))
-                    && properties.has("apiName") &&  apiName.equals(properties.get("apiName"))) {
+            if (properties.has("applicationName") && applicationName2.equals(properties.get("applicationName"))
+                    && properties.has("apiName") &&  apiName2.equals(properties.get("apiName"))) {
                 subscriptionCreationExternalWorkflowRef = (String) listItem.get("referenceId");
             }
         }
@@ -717,7 +742,7 @@ public class WorkflowApprovalExecutorTest extends APIManagerLifecycleBaseTest {
         for (int i = 0; i < arr.length(); i++) {
             JSONObject listItem = (JSONObject) arr.get(i);
             properties = (JSONObject) listItem.get("properties");
-            if (properties.has("applicationName") && applicationName.equals(properties.get("applicationName"))) {
+            if (properties.has("applicationName") && applicationName2.equals(properties.get("applicationName"))) {
                 keyGenerationExternalWorkflowRef = (String) listItem.get("referenceId");
             }
         }
