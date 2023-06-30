@@ -59,7 +59,7 @@ public class APIManagerConfigurationChangeTest extends APIManagerLifecycleBaseTe
 
         //DCR call for publisher app
         DCRParamRequest publisherParamRequest =
-                new DCRParamRequest(RUUID.randomUUID().toString(), RestAPIPublisherImpl.callBackURL,
+                new DCRParamRequest(UUID.randomUUID().toString(), RestAPIPublisherImpl.callBackURL,
                         RestAPIPublisherImpl.tokenScope, RestAPIPublisherImpl.appOwner, RestAPIPublisherImpl.grantType,
                         dcrURL,
                         RestAPIPublisherImpl.username, RestAPIPublisherImpl.password,
