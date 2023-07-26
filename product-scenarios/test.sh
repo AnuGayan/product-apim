@@ -99,7 +99,7 @@ else
 fi
 
 cd $HOME/../modules/integration/tests-common/integration-test-utils
-mvn clean install -Dmaven.test.skip=true
+mvn clean install -Dmaven.test.skip=true -Dmaven.repo.local=~../.m2/repository
 cd $HOME
 
 #=============== Execute Scenarios ===============================================
