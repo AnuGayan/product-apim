@@ -486,6 +486,8 @@
         {% endif %}
          <!--This parameter specifies the alias value of the internal Api Key which will be used for Api Key Authentication-->
         <InternalKeyAlias>{{apim.publisher.key_alias}}</InternalKeyAlias>
+        <!-- This parameter specifies whether encoding is enabled for credentials of the Oauth2 endpoint. -->
+        <Oauth2EndpointCredentialsEncoding>{{apim.publisher.enable_oauth2_endpoint_credentials_encoding}}</Oauth2EndpointCredentialsEncoding>
     </APIPublisher>
 
     <!-- Status observers can be registered against the API Publisher to listen for
@@ -984,6 +986,12 @@
         {% endif %}
     </Monetization>
 
+    {% if apim.swagger.validation_level is defined %}
+    <SwaggerValidation>
+        <validationLevel>{{apim.swagger.validation_level}}</validationLevel>
+    </SwaggerValidation>
+    {% endif %}
+
     {% if apim.devportal.recommendations is defined %}
     <APIRecommendations>
         <recommendationAPI>{{apim.devportal.recommendations.recommendations_api}}</recommendationAPI>
@@ -1017,6 +1025,15 @@
             <Properties>
                 <HostName>{{apim.open_tracer.remote_tracer.properties.hostname}}</HostName>
                 <Port>{{apim.open_tracer.remote_tracer.properties.port}}</Port>
+                {% if apim.open_tracer.remote_tracer.properties.proxy_host is defined %}
+                <ProxyHost>{{apim.open_tracer.remote_tracer.properties.proxy_host}}</ProxyHost>
+                {% endif %}
+                {% if apim.open_tracer.remote_tracer.properties.proxy_port is defined %}
+                <ProxyPort>{{apim.open_tracer.remote_tracer.properties.proxy_port}}</ProxyPort>
+                {% endif %}
+                {% if apim.open_tracer.remote_tracer.properties.endpoint_url is defined %}
+                <EndpointUrl>{{apim.open_tracer.remote_tracer.properties.endpoint_url}}</EndpointUrl>
+                {% endif %}
             </Properties>
         </RemoteTracer>
         <LogTracer>
@@ -1195,6 +1212,15 @@
         {% if apim.event_hub.event_waiting_time is defined %}
         <EventWaitingTime>{{apim.event_hub.event_waiting_time}}</EventWaitingTime>
         {% endif %}
+        {% if  apim.event_hub.deployment_retry_duration is defined %}
+        <RetryDuration>{{apim.event_hub.deployment_retry_duration}}</RetryDuration>
+        {% endif %}
+        {% if apim.event_hub.max_retry_count is defined %}
+        <MaxRetryCount>{{apim.event_hub.max_retry_count}}</MaxRetryCount>
+        {% endif %}
+        {% if apim.event_hub.retry_progression_factor is defined %}
+        <RetryProgressionFactor>{{apim.event_hub.retry_progression_factor}}</RetryProgressionFactor>
+        {% endif %}
          {% if apim.event_hub.init_delay is defined %}
         <InitDelay>{{apim.event_hub.init_delay}}</InitDelay>
           {% endif %}
@@ -1295,8 +1321,14 @@
         {% if apim.sync_runtime_artifacts.gateway.artifact_retriever is defined %}
         <ArtifactRetriever>{{apim.sync_runtime_artifacts.gateway.artifact_retriever}}</ArtifactRetriever>
         {% endif %}
-        {% if apim.sync_runtime_artifacts.gateway.deployment_retry_duration is defined %}
+        {% if apim.event_hub.deployment_retry_duration is not defined and apim.sync_runtime_artifacts.gateway.deployment_retry_duration is defined %}
         <RetryDuration>{{apim.sync_runtime_artifacts.gateway.deployment_retry_duration}}</RetryDuration>
+        {% endif %}
+        {% if apim.event_hub.max_retry_count is not defined and apim.sync_runtime_artifacts.gateway.max_retry_count is defined %}
+        <MaxRetryCount>{{apim.sync_runtime_artifacts.gateway.max_retry_count}}</MaxRetryCount>
+        {% endif %}
+        {% if apim.event_hub.retry_progression_factor is not defined and apim.sync_runtime_artifacts.gateway.retry_progression_factor is defined %}
+        <RetryProgressionFactor>{{apim.sync_runtime_artifacts.gateway.retry_progression_factor}}</RetryProgressionFactor>
         {% endif %}
         {% if apim.sync_runtime_artifacts.gateway.data_retrieval_mode is defined %}
         <DataRetrievalMode>{{apim.sync_runtime_artifacts.gateway.data_retrieval_mode}}</DataRetrievalMode>
