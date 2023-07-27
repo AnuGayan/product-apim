@@ -107,7 +107,7 @@ public class RestAPIAdminImpl {
     public static final String appName = "Integration_Test_App_Admin";
     public static final String callBackURL = "test.com";
     public static final String tokenScope = "Production";
-    public static final String appOwner = "admin";
+    public static final String appOwner = "admin@carbon.super";
     public static final String grantType = "password";
     public static final String username = "admin";
     public static final String password = "admin";
