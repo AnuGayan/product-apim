@@ -59,7 +59,7 @@ public class APIManagerConfigurationChangeTest extends APIManagerLifecycleBaseTe
 
         //DCR call for publisher app
         DCRParamRequest publisherParamRequest =
-                new DCRParamRequest(UUID.randomUUID().toString(), RestAPIPublisherImpl.callBackURL,
+                new DCRParamRequest(RestAPIPublisherImpl.appName, RestAPIPublisherImpl.callBackURL,
                         RestAPIPublisherImpl.tokenScope, RestAPIPublisherImpl.appOwner, RestAPIPublisherImpl.grantType,
                         dcrURL,
                         RestAPIPublisherImpl.username, RestAPIPublisherImpl.password,
@@ -67,12 +67,12 @@ public class APIManagerConfigurationChangeTest extends APIManagerLifecycleBaseTe
         ClientAuthenticator.makeDCRRequest(publisherParamRequest);
         //DCR call for dev portal app
         DCRParamRequest devPortalParamRequest =
-                new DCRParamRequest(UUID.randomUUID().toString(), RestAPIStoreImpl.callBackURL,
+                new DCRParamRequest(RestAPIStoreImpl.appName, RestAPIStoreImpl.callBackURL,
                         RestAPIStoreImpl.tokenScope, RestAPIStoreImpl.appOwner, RestAPIStoreImpl.grantType, dcrURL,
                         RestAPIStoreImpl.username, RestAPIStoreImpl.password,
                         APIMIntegrationConstants.SUPER_TENANT_DOMAIN);
         ClientAuthenticator.makeDCRRequest(devPortalParamRequest);
-        DCRParamRequest adminPortalParamRequest = new DCRParamRequest(UUID.randomUUID().toString(),
+        DCRParamRequest adminPortalParamRequest = new DCRParamRequest(RestAPIAdminImpl.appName,
                 RestAPIAdminImpl.callBackURL,
                 RestAPIAdminImpl.tokenScope, RestAPIAdminImpl.appOwner, RestAPIAdminImpl.grantType, dcrURL,
                 RestAPIAdminImpl.username, RestAPIAdminImpl.password,
