@@ -353,6 +353,8 @@ do
     -DenableCorrelationLogs=false \
     -Dcarbon.new.config.dir.path="$CARBON_HOME/repository/resources/conf" \
     -Djavax.xml.xpath.XPathFactory:http://java.sun.com/jaxp/xpath/dom=net.sf.saxon.xpath.XPathFactoryImpl \
+    -Djdk.util.zip.disableZip64ExtraFieldValidation=true \
+    -Djdk.nio.zipfs.allowDotZipEntry=true \
     org.wso2.carbon.bootstrap.Bootstrap $*
     status=$?
 done
