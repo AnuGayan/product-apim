@@ -30,9 +30,22 @@ under the License.
     <artifactId>org.wso2.carbon.am.integration.test</artifactId>
     <packaging>pom</packaging>
 
-    <modules>
-        <module>tests-backend</module>
-        <module>tests-restart</module>
-        <!--module>tests-config</module-->
-    </modules>
+    <profiles>
+        <profile>
+            <id>default</id>
+            <activation>
+                <activeByDefault>true</activeByDefault>
+            </activation>
+            <modules>
+                <module>tests-backend</module>
+                <module>tests-restart</module>
+            </modules>
+        </profile>
+        <profile>
+            <id>without-restart</id>
+            <modules>
+                <module>tests-backend</module>
+            </modules>
+        </profile>
+    </profiles>
 </project>

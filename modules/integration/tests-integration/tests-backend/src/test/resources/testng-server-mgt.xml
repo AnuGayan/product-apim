@@ -2,7 +2,6 @@
 
 <suite name="apim-automation-tests-suite-1">
     <parameter name="useDefaultListeners" value="false"/>
-
     <listeners>
         <listener class-name="org.wso2.carbon.automation.engine.testlisteners.TestExecutionListener"/>
         <listener class-name="org.wso2.carbon.automation.engine.testlisteners.TestManagerListener"/>
