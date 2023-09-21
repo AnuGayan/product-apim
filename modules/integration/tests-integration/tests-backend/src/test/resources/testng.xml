@@ -40,7 +40,7 @@
 
     <!--Separate group is introduced due to change of backend endpoints-->
     <test name="apim-integration-tests-api-change-endpoint" preserve-order="true" parallel="false" group-by-instances="true">
-        <parameter name="group" value="group1"/>
+        <parameter name="group" value="group4"/>
         <classes>
             <class name="org.wso2.am.integration.tests.other.AdvancedWebAppDeploymentConfig"/>
             <class name="org.wso2.am.integration.tests.api.lifecycle.ChangeAPIEndPointURLTestCase"/>
@@ -48,7 +48,7 @@
     </test>
 
     <test name="apim-integration-tests-api-product" preserve-order="true" parallel="false" group-by-instances="true">
-        <parameter name="group" value="group1"/>
+        <parameter name="group" value="group4"/>
         <classes>
             <class name="org.wso2.am.integration.tests.api.revision.APIProductRevisionTestCase"/>
             <class name="org.wso2.am.integration.tests.apiproduct.APIProductCreationTestCase"/>
@@ -177,7 +177,7 @@
     </test>
 
     <test name="apim-publisher-tests" preserve-order="true" parallel="false" group-by-instances="true">
-        <parameter name="group" value="group3"/>
+        <parameter name="group" value="group4"/>
         <classes>
             <class name="org.wso2.am.integration.tests.prototype.APIM23VisibilityOfPrototypedAPIInStoreTestCase"/>
             <class name="org.wso2.am.integration.tests.prototype.APIM24VisibilityOfPrototypedAPIOfDifferentViewInStoreTestCase"/>
@@ -293,7 +293,7 @@
     </test>
 
     <test name="apim-JWT-integration-tests" preserve-order="true" parallel="false" group-by-instances="true">
-        <parameter name="group" value="group3"/>
+        <parameter name="group" value="group4"/>
         <classes>
             <class name="org.wso2.am.integration.tests.jwt.JWTTestSuite"/>
             <class name="org.wso2.am.integration.tests.jwt.JWTTestCase"/>
@@ -302,7 +302,7 @@
     </test>
 
     <test name="apim-urlsafe-JWT-integration-tests" preserve-order="true" parallel="false" group-by-instances="true">
-        <parameter name="group" value="group3"/>
+        <parameter name="group" value="group4"/>
         <classes>
             <class name="org.wso2.am.integration.tests.jwt.urlsafe.UrlSafeJWTTestSuite"/>
             <class name="org.wso2.am.integration.tests.jwt.urlsafe.URLSafeJWTTestCase"/>
