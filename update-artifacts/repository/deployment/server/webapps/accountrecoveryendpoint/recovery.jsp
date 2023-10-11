@@ -19,6 +19,7 @@
 
 <%@ page import="org.apache.commons.collections.map.HashedMap" %>
 <%@ page import="org.apache.commons.lang.StringUtils" %>
+<%@ page import="org.wso2.carbon.identity.base.IdentityRuntimeException" %>
 <%@ page import="org.wso2.carbon.identity.mgt.endpoint.util.IdentityManagementEndpointConstants" %>
 <%@ page import="org.wso2.carbon.identity.mgt.endpoint.util.IdentityManagementEndpointUtil" %>
 <%@ page import="org.wso2.carbon.identity.mgt.endpoint.util.client.ApiException" %>
@@ -26,6 +27,8 @@
 <%@ page import="org.wso2.carbon.identity.mgt.endpoint.util.client.api.PasswordRecoveryApiV1" %>
 <%@ page import="org.wso2.carbon.identity.mgt.endpoint.util.client.model.Claim" %>
 <%@ page import="org.wso2.carbon.identity.mgt.endpoint.util.client.model.UserClaim" %>
+<%@ page import="org.wso2.carbon.identity.recovery.util.Utils" %>
+<%@ page import="org.wso2.carbon.identity.recovery.IdentityRecoveryConstants" %>
 <%@ page import="java.util.ArrayList" %>
 <%@ page import="java.util.List" %>
 <%@ page import="java.util.Map" %>
@@ -57,8 +60,28 @@
     // Password recovery parameters
     String recoveryOption = request.getParameter("recoveryOption");
 
+    try {
+        if (StringUtils.isNotBlank(callback) && !Utils.validateCallbackURL(callback, tenantDomain,
+            IdentityRecoveryConstants.ConnectorConfig.RECOVERY_CALLBACK_REGEX)) {
+            request.setAttribute("error", true);
+            request.setAttribute("errorMsg", IdentityManagementEndpointUtil.i18n(recoveryResourceBundle,
+                        "Callback.url.format.invalid"));
+            request.getRequestDispatcher("error.jsp").forward(request, response);
+            return;
+        }
+    } catch (IdentityRuntimeException e) {
+        request.setAttribute("error", true);
+        request.setAttribute("errorMsg", e.getMessage());
+        request.getRequestDispatcher("error.jsp").forward(request, response);
+        return;
+    }
+
     if (isUsernameRecovery) {
         // Username Recovery Scenario
+        if (StringUtils.isBlank(tenantDomain)) {
+            tenantDomain = IdentityManagementEndpointConstants.SUPER_TENANT;
+        }
+        
         List<Claim> claims;
         UsernameRecoveryApi usernameRecoveryApi = new UsernameRecoveryApi();
         try {
