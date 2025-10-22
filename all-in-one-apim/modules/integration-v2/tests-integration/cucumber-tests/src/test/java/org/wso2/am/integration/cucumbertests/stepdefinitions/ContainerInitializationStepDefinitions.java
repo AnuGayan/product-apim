@@ -27,6 +27,7 @@ import org.wso2.am.integration.cucumbertests.utils.Utils;
 import org.wso2.am.integration.test.utils.Constants;
 import org.wso2.am.integration.cucumbertests.utils.ModulePathResolver;
 import org.wso2.am.testcontainers.APIMContainer;
+import org.wso2.am.testcontainers.DockerHostResolver;
 import org.wso2.am.testcontainers.NodeAppServer;
 
 import java.nio.file.Files;
@@ -44,6 +45,7 @@ public class ContainerInitializationStepDefinitions {
     @Given("I have initialized the API Manager container with label {string} and deployment toml changes file path at {string}")
     public void initializeAPIMContainer(String label, String tomlChangesDirPath) throws IOException, InterruptedException {
 
+        DockerHostResolver.configureTestcontainers();
         final String activeProfile = System.getProperty("active.profile", Constants.DEFAULT_PROFILE).toLowerCase();
         // Get the base deployment.toml path based on the active profile
         String baseTomlPath = Constants.MIGRATION_PROFILE.equals(activeProfile)

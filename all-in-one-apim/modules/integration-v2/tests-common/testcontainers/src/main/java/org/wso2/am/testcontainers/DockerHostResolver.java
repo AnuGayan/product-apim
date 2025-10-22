@@ -47,6 +47,16 @@ public class DockerHostResolver {
     }
 
     /**
+     * Configure Testcontainers to use the correct host ip.
+     */
+    public static void configureTestcontainers() {
+
+        if (isColima()) {
+            System.setProperty("testcontainers.host.override", getColimaHostIp());
+        }
+    }
+
+    /**
      * Check if the docker host is Colima.
      *
      * @return true if the docker host is Colima, false otherwise
@@ -77,7 +87,6 @@ public class DockerHostResolver {
                         String address = jsonNode.get("address").asText();
                         if (address != null && !address.isEmpty()) {
                             log.info("Colima host ip: {}", address);
-                            process.waitFor();
                             return address;
                         }
                     }
