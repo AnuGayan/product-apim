@@ -41,11 +41,14 @@ public class ContainerInitializationStepDefinitions {
     private static final Logger logger = LoggerFactory.getLogger(ContainerInitializationStepDefinitions.class);
     String callerModuleDir = ModulePathResolver.getModuleDir(ContainerInitializationStepDefinitions.class);
 
+    static {
+        DockerHostResolver.configureTestcontainers();
+    }
+
 
     @Given("I have initialized the API Manager container with label {string} and deployment toml changes file path at {string}")
     public void initializeAPIMContainer(String label, String tomlChangesDirPath) throws IOException, InterruptedException {
 
-        DockerHostResolver.configureTestcontainers();
         final String activeProfile = System.getProperty("active.profile", Constants.DEFAULT_PROFILE).toLowerCase();
         // Get the base deployment.toml path based on the active profile
         String baseTomlPath = Constants.MIGRATION_PROFILE.equals(activeProfile)
