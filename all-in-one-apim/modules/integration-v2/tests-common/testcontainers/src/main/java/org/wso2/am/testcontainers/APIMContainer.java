@@ -45,11 +45,8 @@ public class APIMContainer extends GenericContainer<APIMContainer> {
 
         super(System.getProperty("apim.docker.image.name"));
 
-        String dockerHost = DockerHostResolver.getDockerHost();
-        String apim_db_url = System.getenv(Constants.API_MANAGER_DATABASE_URL).replace("host.docker.internal",
-                dockerHost);
-        String shared_db_url = System.getenv(Constants.SHARED_DATABASE_URL).replace("host.docker.internal",
-                dockerHost);
+        String apim_db_url = System.getenv(Constants.API_MANAGER_DATABASE_URL);
+        String shared_db_url = System.getenv(Constants.SHARED_DATABASE_URL);
 
         int offset = Constants.DEFAULT_OFFSET;
 

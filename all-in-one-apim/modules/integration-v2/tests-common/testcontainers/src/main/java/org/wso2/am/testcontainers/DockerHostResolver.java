@@ -32,48 +32,18 @@ public class DockerHostResolver {
     private static final Logger log = LoggerFactory.getLogger(DockerHostResolver.class);
     private static final String DOCKER_HOST_INTERNAL = "host.docker.internal";
 
-    /**
-     * Get the docker host ip.
-     *
-     * @return docker host ip
-     */
-    public static String getDockerHost() {
+    private static String colimaHostIp = null;
+    private static String colimaDockerSocketPath = null;
+    private static boolean isColimaEnvironment;
 
-        String dockerHost = DockerClientFactory.instance().dockerHostIpAddress();
-        if (isColima()) {
-            dockerHost = getColimaHostIp();
-        }
-        return dockerHost;
-    }
-
-    /**
-     * Configure Testcontainers to use the correct host ip.
-     */
-    public static void configureTestcontainers() {
-
-        if (isColima()) {
-            System.setProperty("testcontainers.host.override", getColimaHostIp());
+    static {
+        isColimaEnvironment = System.getenv("COLIMA_VERSION") != null;
+        if (isColimaEnvironment) {
+            resolveColimaConfiguration();
         }
     }
 
-    /**
-     * Check if the docker host is Colima.
-     *
-     * @return true if the docker host is Colima, false otherwise
-     */
-    private static boolean isColima() {
-
-        String colimaVersion = System.getenv("COLIMA_VERSION");
-        return colimaVersion != null && !colimaVersion.isEmpty();
-    }
-
-    /**
-     * Get the Colima host ip.
-     *
-     * @return Colima host ip
-     */
-    private static String getColimaHostIp() {
-
+    private static void resolveColimaConfiguration() {
         try {
             Process process = Runtime.getRuntime().exec("colima ls -j");
             BufferedReader reader = new BufferedReader(new InputStreamReader(process.getInputStream()));
@@ -83,23 +53,58 @@ public class DockerHostResolver {
             while ((line = reader.readLine()) != null) {
                 try {
                     JsonNode jsonNode = objectMapper.readTree(line);
-                    if (jsonNode.has("address")) {
-                        String address = jsonNode.get("address").asText();
-                        if (address != null && !address.isEmpty()) {
-                            log.info("Colima host ip: {}", address);
-                            return address;
+                    // We only need one valid configuration, so we take the first one that is running.
+                    if (jsonNode.has("running") && jsonNode.get("running").asBoolean()) {
+                        if (jsonNode.has("address")) {
+                            colimaHostIp = jsonNode.get("address").asText();
                         }
+                        if (jsonNode.has("docker")) {
+                            colimaDockerSocketPath = jsonNode.get("docker").asText();
+                        }
+                        // Break after finding the first running instance.
+                        break;
                     }
                 } catch (IOException e) {
-                    // Ignore malformed JSON lines
+                    log.warn("Could not parse JSON from colima output line: {}", line, e);
                 }
             }
             process.waitFor();
         } catch (IOException | InterruptedException e) {
-            log.error("Error while getting Colima host ip", e);
+            log.error("Error while getting Colima configuration", e);
         }
-        log.warn("Could not determine Colima host ip. Falling back to {}", DOCKER_HOST_INTERNAL);
-        return DOCKER_HOST_INTERNAL;
+
+        if (colimaHostIp == null || colimaDockerSocketPath == null) {
+            log.warn("Could not determine Colima host IP or Docker socket path. Testcontainers might not work correctly.");
+        } else {
+            log.info("Detected Colima environment. Host IP: {}, Docker Socket: {}", colimaHostIp, colimaDockerSocketPath);
+        }
     }
 
+    /**
+     * Get the docker host ip, considering Colima.
+     *
+     * @return docker host ip
+     */
+    public static String getDockerHost() {
+        if (isColimaEnvironment && colimaHostIp != null) {
+            return colimaHostIp;
+        }
+        return DockerClientFactory.instance().dockerHostIpAddress();
+    }
+
+    /**
+     * Configure Testcontainers to use the correct Docker socket and host ip for Colima.
+     */
+    public static void configureTestcontainers() {
+        if (isColimaEnvironment) {
+            if (colimaDockerSocketPath != null) {
+                System.setProperty("docker.host", "unix://" + colimaDockerSocketPath);
+                log.info("Set system property 'docker.host' to: unix://{}", colimaDockerSocketPath);
+            }
+            if (colimaHostIp != null) {
+                System.setProperty("testcontainers.host.override", colimaHostIp);
+                log.info("Set system property 'testcontainers.host.override' to: {}", colimaHostIp);
+            }
+        }
+    }
 }
