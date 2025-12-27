@@ -47,7 +47,7 @@ jobs:
           CURRENT=$(mvn -q \
             -Dexpression=${CARBON_APIMGT_VERSION_PROPERTY} \
             -DforceStdout \
-            org.codehaus.mojo:exec-maven-plugin:3.1.0:evaluate 2>/dev/null || true)
+            help:evaluate 2>/dev/null || true)
 
           echo "Current carbon-apimgt version: $CURRENT"
           echo "CURRENT_CARBON_APIMGT_VERSION=$CURRENT" >> $GITHUB_ENV
