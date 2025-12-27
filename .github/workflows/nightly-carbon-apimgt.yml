@@ -81,7 +81,7 @@ jobs:
       - name: Build APIM distribution
         working-directory: all-in-one-apim
         run: |
-          mvn -B clean install -DskipTests
+          mvn -B clean install -Dmaven.test.skip=true
 
       - name: Upload APIM distribution artifact
         uses: actions/upload-artifact@v4
