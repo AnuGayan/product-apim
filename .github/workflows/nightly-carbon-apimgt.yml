@@ -1,10 +1,4 @@
-name: Nightly carbon-apimgt update and build
-
-#on:
-#  schedule:
-#    # Every night at 00:30 UTC (adjust as needed)
-#    - cron: "30 0 * * *"
-#  workflow_dispatch: {}
+name: Carbon-apimgt update and build
 
 on:
   workflow_dispatch: {}
@@ -14,18 +8,16 @@ jobs:
     runs-on: ubuntu-latest
 
     permissions:
-      contents: write   # needed to push changes
+      contents: write
 
     env:
       CARBON_APIMGT_REPO: https://github.com/wso2/carbon-apimgt.git
-      CARBON_APIMGT_VERSION_PROPERTY: carbon.apimgt.version  # change if your property name is different
+      CARBON_APIMGT_VERSION_PROPERTY: carbon.apimgt.version
 
     steps:
       - name: Checkout product-apim
         uses: actions/checkout@v4
         with:
-          # If you need a PAT, set it as PAT in repo secrets and uncomment:
-          # token: ${{ secrets.PAT }}
           fetch-depth: 0
 
       - name: Set up JDK
@@ -50,6 +42,7 @@ jobs:
           echo "LATEST_CARBON_APIMGT_VERSION=$LATEST" >> $GITHUB_ENV
 
       - name: Read current carbon-apimgt version from Maven
+        working-directory: all-in-one-apim
         run: |
           CURRENT=$(mvn -q \
             -Dexpression=${CARBON_APIMGT_VERSION_PROPERTY} \
@@ -61,6 +54,7 @@ jobs:
 
       - name: Update pom.xml with latest carbon-apimgt version
         if: env.LATEST_CARBON_APIMGT_VERSION != '' && env.LATEST_CARBON_APIMGT_VERSION != env.CURRENT_CARBON_APIMGT_VERSION
+        working-directory: all-in-one-apim
         run: |
           echo "Updating ${CARBON_APIMGT_VERSION_PROPERTY} from ${CURRENT_CARBON_APIMGT_VERSION} to ${LATEST_CARBON_APIMGT_VERSION}"
 
@@ -69,8 +63,6 @@ jobs:
             -Dproperty=${CARBON_APIMGT_VERSION_PROPERTY} \
             -DnewVersion=${LATEST_CARBON_APIMGT_VERSION} \
             -DgenerateBackupPoms=false
-
-          echo "Maven property updated."
 
       - name: Commit and push version bump
         if: env.LATEST_CARBON_APIMGT_VERSION != '' && env.LATEST_CARBON_APIMGT_VERSION != env.CURRENT_CARBON_APIMGT_VERSION
@@ -87,7 +79,7 @@ jobs:
           git push origin HEAD:${GITHUB_REF_NAME}
 
       - name: Build APIM distribution
-        # Build even if version didn't change, so you still get nightly distro
+        working-directory: all-in-one-apim
         run: |
           mvn -B clean install -DskipTests
 
@@ -96,6 +88,6 @@ jobs:
         with:
           name: apim-distribution-${{ env.LATEST_CARBON_APIMGT_VERSION }}
           path: |
-            modules/distribution/**/target/*.zip
-            modules/distribution/**/target/*.tar.gz
+            all-in-one-apim/modules/distribution/**/target/*.zip
+            all-in-one-apim/modules/distribution/**/target/*.tar.gz
           if-no-files-found: warn
